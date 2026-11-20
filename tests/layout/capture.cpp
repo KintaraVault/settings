@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 
 #include "base/timer.h"
@@ -26,16 +27,30 @@ static constexpr uint64_t kFrameNs = 1000000000;
 int main(int argc, char** argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "usage: %s DIR [PAGE...]\n", argv[0]);
+        fprintf(stderr, "usage: %s DIR [--style=0..3] [--tone=0..2] [--glass=0..1] [--tint=0..9] [--opaque] [PAGE...]\n", argv[0]);
         return 1;
     }
     Application application(argc, argv, Application::Platform::Headless);
     settings::setDataDirectory(SETTINGS_SOURCE_DIR);
     settings::setOptions({.mockNetwork = true, .mockBattery = true});
     const std::string directory = argv[1];
+    AppearanceStyle style;
     std::vector<std::string> ids;
-    for (int i = 2; i < argc; ++i)
-        ids.push_back(argv[i]);
+    for (int i = 2; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg.starts_with("--style="))
+            style.icons = appearance_style::iconStyle(std::atoi(arg.c_str() + 8));
+        else if (arg.starts_with("--tone="))
+            style.tone = appearance_style::iconTone(std::atoi(arg.c_str() + 7));
+        else if (arg.starts_with("--glass="))
+            style.glass = appearance_style::glassValue(std::atof(arg.c_str() + 8));
+        else if (arg.starts_with("--tint="))
+            style.tintColor = appearance_style::colorIndex(std::atoi(arg.c_str() + 7));
+        else if (arg == "--opaque")
+            style.reduceTransparency = true;
+        else
+            ids.push_back(arg);
+    }
     if (ids.empty()) {
         for (const settings::PageInfo& page : settings::pages()) {
             if (page.create)
@@ -45,7 +60,7 @@ int main(int argc, char** argv)
     const Theme light = Theme::current();
     int failures = 0;
     for (const auto& [mode, theme] : {std::pair{"light", light}, std::pair{"dark", Theme::dark()}}) {
-        Theme::setCurrent(theme);
+        Theme::setCurrent(theme, style);
         for (const double scale : {1.0, 1.5}) {
             for (const std::string& id : ids) {
                 const settings::PageInfo* page = settings::findPage(id);
@@ -71,7 +86,7 @@ int main(int argc, char** argv)
                     cutefish::base::Timer settle;
                     settle.setSingleShot(true);
                     settle.onTimeout = [&application] { application.quit(); };
-                    settle.start(std::chrono::milliseconds(150));
+                    settle.start(std::chrono::milliseconds(500));
                     application.run();
                 }
                 char name[256];

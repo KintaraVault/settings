@@ -7,8 +7,12 @@
 #include <chrono>
 #include <string>
 
+#include <atomic>
+
 #include "scenario.h"
+#include "service_thread.h"
 #include "ui/slider.h"
+#include "ui/theme.h"
 #include "widgets/sliderrow.h"
 
 using namespace cutefish::ui;
@@ -68,14 +72,35 @@ TEST(DockPage, SizeStaysWhereItIsDragged)
     expectDragHolds(scenario.driver, "dock:size", 0.8);
 }
 
-TEST(DockPage, GlassEffectRemainsVisibleButReadOnly)
+TEST(DockPage, GlassEffectUpdatesTheDockAndRespectsReducedTransparency)
 {
+    using namespace cutefish::base;
+    using settings::testing::ServiceThread;
+    if (!settings::testing::hasSessionBus())
+        GTEST_SKIP() << "no session bus";
+    std::atomic<double> tint{-1};
+    ServiceThread service("org.cutefish.Dock", [&tint](dbus::Connection& bus) {
+        auto object = std::make_shared<dbus::Object>(&bus, "/Dock", "org.cutefish.Dock");
+        object->addMethod("setGlassTint", [&tint](double value) { tint.store(value); });
+        object->publish();
+        return object;
+    });
+    ASSERT_TRUE(service.start());
+
     Scenario scenario("dock");
     auto* row = scenario.driver.find<SliderRow>("dock:glass");
     ASSERT_TRUE(row);
     EXPECT_TRUE(row->slider()->isVisible());
+    EXPECT_TRUE(row->slider()->isEnabled());
+    expectDragHolds(scenario.driver, "dock:glass", 0.8);
+    EXPECT_DOUBLE_EQ(tint.load(), row->value());
+
+    const auto theme = Theme::current();
+    const auto original = Theme::appearanceStyle();
+    auto reduced = original;
+    reduced.reduceTransparency = true;
+    Theme::setCurrent(theme, reduced);
     EXPECT_FALSE(row->slider()->isEnabled());
-    const double value = row->value();
-    scenario.driver.dragSlider("dock:glass", 0.2, 0.8);
-    EXPECT_EQ(row->value(), value);
+    Theme::setCurrent(theme, original);
+    EXPECT_TRUE(row->slider()->isEnabled());
 }

@@ -59,5 +59,6 @@ TEST_F(TouchpadTest, BothCardsLeaveOutTheSecondaryClick)
     EXPECT_EQ(windowRect(window, "touchpad:device").height, 3 * 38);
     const RectF gestures = windowRect(window, "touchpad:gestures");
     EXPECT_NEAR(gestures.y, 375, 0.5);
-    EXPECT_EQ(gestures.height, 2 * 38 + 56);
+    // The tracking speed caption's line height depends on the system font.
+    EXPECT_NEAR(gestures.height, 2 * 38 + 56, 2);
 }

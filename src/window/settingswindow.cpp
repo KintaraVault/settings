@@ -24,6 +24,7 @@
 #include "ui/cell_layout.h"
 #include "ui/sidebar_divider.h"
 #include "ui/theme.h"
+#include "ui/toolbar_surface.h"
 #include "ui/window.h"
 #include "ui/window_controls.h"
 #include "ui/window_header.h"
@@ -443,12 +444,10 @@ void SettingsWindow::updateHeader()
 
 void SettingsWindow::updateBackground()
 {
-    const Theme& theme = Theme::current();
     const bool active = m_window->isActive();
-    m_window->setBackgroundColor(
-        active ? ColorId::TranslucentWindowBackground : ColorId::TranslucentWindowBackgroundInactive);
-    const SizeF size = m_window->size();
-    m_window->setBackgroundBlur({0, 0, size.width, size.height}, theme.windowRadius);
+    m_window->setBackgroundColor(Theme::appearanceStyle().reduceTransparency ? ColorId::Background
+        : active ? ColorId::TranslucentWindowBackground : ColorId::TranslucentWindowBackgroundInactive);
+    toolbar_surface::applyWindowGlass(*m_window);
 }
 
 void SettingsWindow::switchToIndex(int index)

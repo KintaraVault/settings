@@ -65,6 +65,8 @@ TEST_F(MouseTest, PreviewPrecedesTheTrackingCard)
     EXPECT_EQ(card.x, 252);
     EXPECT_EQ(card.y, 218);
     EXPECT_EQ(card.width, 628);
-    EXPECT_EQ(card.height, 3 * 38 + 56);
-    EXPECT_EQ(windowRect(window, "mouse:speed").height, 56);
+    const double speedHeight = windowRect(window, "mouse:speed").height;
+    // The caption line uses the system font, while the plain rows stay fixed.
+    EXPECT_NEAR(card.height, 3 * 38 + speedHeight, 1.0 / window.scale());
+    EXPECT_NEAR(speedHeight, 56, 2);
 }

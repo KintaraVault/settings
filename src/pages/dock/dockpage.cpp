@@ -10,6 +10,7 @@
 #include "ui/layout.h"
 #include "ui/cell_layout.h"
 #include "ui/segmented_control.h"
+#include "ui/theme.h"
 #include "widgets/card.h"
 #include "widgets/listrow.h"
 #include "widgets/metrics.h"
@@ -186,11 +187,20 @@ public:
         glass->setCaptions(tr("More clear"), tr("More tinted"));
         glass->setRange(0, 1);
         glass->setValue(m_settings.glassTint());
-        glass->setSliderEnabled(false);
+        const auto updateTransparency = [glass] {
+            glass->setSliderEnabled(!Theme::appearanceStyle().reduceTransparency);
+        };
+        updateTransparency();
+        m_transparencyChanged = Theme::changed().connect(updateTransparency);
+        glass->onMoved = [this, glass](double value) {
+            m_settings.setGlassTint(value);
+            glass->setValue(m_settings.glassTint());
+        };
     }
 
 private:
     DockSettings m_settings;
+    cutefish::base::Subscription m_transparencyChanged;
 };
 
 } // namespace

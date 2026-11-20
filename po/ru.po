@@ -2772,14 +2772,26 @@ msgstr "Тема"
 msgid "Liquid Glass"
 msgstr "Liquid Glass"
 
+msgid "Liquid Glass Preview"
+msgstr "Просмотр Liquid Glass"
+
+msgid "Adjust the opacity and refraction of Liquid Glass"
+msgstr "Настроить непрозрачность и преломление Liquid Glass"
+
 msgid "Color"
 msgstr "Цвет"
 
 msgid "Icon & widget style"
 msgstr "Стиль значков и виджетов"
 
+msgid "Icon, widget & folder color"
+msgstr "Цвет значков, виджетов и папок"
+
 msgid "Folder color"
 msgstr "Цвет папок"
+
+msgid "Multicolor"
+msgstr "Многоцветный"
 
 msgid "Clear"
 msgstr "Прозрачный"

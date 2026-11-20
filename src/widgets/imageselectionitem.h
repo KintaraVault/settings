@@ -28,7 +28,7 @@ public:
     ImageSelectionItem(std::string path, std::string text, cutefish::ui::SizeF previewSize);
     // A view of its own size centred in the preview, such as an icon.
     ImageSelectionItem(std::unique_ptr<cutefish::ui::View> icon, std::string text, cutefish::ui::SizeF previewSize,
-                       double previewInset = 4);
+                        double previewInset = 4, double previewRadius = 5);
 
     void setChecked(bool checked);
     bool isChecked() const { return m_checked; }
@@ -52,6 +52,7 @@ private:
     cutefish::ui::ColumnLayout* m_layout;
     SelectionPreview* m_preview;
     cutefish::ui::Label* m_label;
+    cutefish::ui::Label* m_captionMeasure;
     bool m_checked = false;
     bool m_pressed = false;
 };

@@ -3,6 +3,8 @@
 
 #include "widgets/imageselectionitem.h"
 
+#include <algorithm>
+
 #include "ui/label.h"
 #include "ui/keys.h"
 #include "ui/painter.h"
@@ -23,9 +25,10 @@ namespace settings {
 class SelectionPreview : public View
 {
 public:
-    SelectionPreview(SizeF size, double inset)
+    SelectionPreview(SizeF size, double inset, double radius = 5)
         : m_size(size)
         , m_inset(inset)
+        , m_radius(radius)
     {
         setLayoutHints({.preferredWidth = size.width, .preferredHeight = size.height});
     }
@@ -69,13 +72,14 @@ protected:
         if (!m_checked)
             return;
         const Theme& theme = Theme::current();
-        painter.drawRoundedRect(localRect(), {5, -m_inset, themeCorners()}, Color{0, 0, 0, 0}, 2.5,
+        painter.drawRoundedRect(localRect(), {m_radius, -m_inset, themeCorners()}, Color{0, 0, 0, 0}, 2.5,
                                 isEnabled() ? theme.highlight : theme.disabledText.withAlpha(0.45));
     }
 
 private:
     SizeF m_size;
     double m_inset;
+    double m_radius;
     Picture* m_picture = nullptr;
     View* m_icon = nullptr;
     bool m_checked = false;
@@ -90,10 +94,10 @@ ImageSelectionItem::ImageSelectionItem(std::string path, std::string text, SizeF
 }
 
 ImageSelectionItem::ImageSelectionItem(std::unique_ptr<View> icon, std::string text, SizeF previewSize,
-                                       double previewInset)
+                                        double previewInset, double previewRadius)
 {
     m_layout = addChild<ColumnLayout>();
-    m_preview = m_layout->addChild<SelectionPreview>(previewSize, previewInset);
+    m_preview = m_layout->addChild<SelectionPreview>(previewSize, previewInset, previewRadius);
     m_preview->setIcon(std::move(icon));
     build(std::move(text));
 }
@@ -101,6 +105,12 @@ ImageSelectionItem::ImageSelectionItem(std::unique_ptr<View> icon, std::string t
 void ImageSelectionItem::build(std::string text)
 {
     m_layout->setSpacing(metrics::xs);
+    // Reserve space for the selected weight even on an unselected tile.
+    // Otherwise selecting a wider caption moves its neighbours.
+    m_captionMeasure = addChild<Label>(text);
+    m_captionMeasure->setFontSize(11);
+    m_captionMeasure->setWeight(600);
+    m_captionMeasure->setVisible(false);
     m_label = m_layout->addChild<Label>(std::move(text));
     m_label->setFontSize(11);
     m_label->setVisible(!m_label->text().empty());
@@ -119,7 +129,9 @@ void ImageSelectionItem::setChecked(bool checked)
 // The item is as large as its layout, as the Qt version's was.
 SizeF ImageSelectionItem::sizeHint() const
 {
-    return m_layout->sizeHint();
+    auto size = m_layout->sizeHint();
+    size.width = std::max(size.width, m_captionMeasure->sizeHint().width);
+    return size;
 }
 
 double ImageSelectionItem::heightForWidth(double width) const
