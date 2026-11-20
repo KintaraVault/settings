@@ -20,10 +20,9 @@ using namespace cutefish::ui;
 
 namespace settings {
 
-// Above 12 px, so the glyph keeps its thin drawing rather than the heavier small one.
-static constexpr double kChevron = 14;
+static constexpr double kChevron = 20;
 // Fits a plain row, so a choice does not make its row taller than a switch does.
-static constexpr double kHeight = 32;
+static constexpr double kHeight = 26;
 static constexpr double kItemIcon = 22;
 
 RowComboBox::RowComboBox(std::vector<std::string> items)
@@ -32,7 +31,6 @@ RowComboBox::RowComboBox(std::vector<std::string> items)
     m_icon->setVisible(false);
     m_label = addChild<Label>();
     m_label->setVerticallyCentered(true);
-    m_chevron = addChild<Icon>("chevron-down", kChevron);
     setItems(std::move(items));
 }
 
@@ -85,11 +83,9 @@ void RowComboBox::update()
     requestPaint();
 }
 
-// The chevron's drawing ends where a switch does, with the hover fill short
-// of the card's edge.
 double RowComboBox::trailingOverhang() const
 {
-    return -metrics::trailingGlyphMargin("chevron-down", kChevron, Theme::current().smallSpacing);
+    return 0;
 }
 
 SizeF RowComboBox::sizeHint() const
@@ -97,9 +93,9 @@ SizeF RowComboBox::sizeHint() const
     const Theme& theme = Theme::current();
     const double iconWidth = m_icon->isVisible() ? kItemIcon + theme.mediumSpacing : 0;
     const double width = theme.largeSpacing + iconWidth + std::ceil(m_label->sizeHint().width)
-            + theme.smallSpacing + kChevron + theme.mediumSpacing;
+            + theme.smallSpacing + kChevron;
     // FishUI's text field pads its text by smallSpacing above and below.
-    const double height = std::max(kHeight, m_label->sizeHint().height + 2 * theme.smallSpacing);
+    const double height = std::max(kHeight, m_label->sizeHint().height + 6);
     return {width, height};
 }
 
@@ -113,15 +109,10 @@ void RowComboBox::layout()
         m_icon->setGeometry({x, (height - kItemIcon) / 2, kItemIcon, kItemIcon});
         x += kItemIcon + theme.mediumSpacing;
     }
-    const double right = width - theme.smallSpacing - kChevron - theme.mediumSpacing;
+    const double right = width - theme.smallSpacing - kChevron;
     m_label->setGeometry({x, 0, std::max(0.0, right - x), height});
-    m_chevron->setGeometry({width - kChevron - theme.smallSpacing, std::round((height - kChevron) / 2),
-                            kChevron, kChevron});
     const bool enabled = isEnabled();
-    m_chevron->setColor(enabled ? theme.text : theme.disabledText);
     m_label->setColor(enabled ? theme.text : theme.disabledText);
-    // Faded as far as a label, so a disabled box matches its row's label.
-    m_chevron->setOpacity(enabled ? 1 : 0.6);
     m_icon->setOpacity(enabled ? 1 : 0.6);
 }
 
@@ -129,10 +120,17 @@ void RowComboBox::paint(Painter& painter)
 {
     const Theme& theme = Theme::current();
     const bool open = m_menu && m_menu->isOpen();
-    if (!isEnabled() || !(m_hovered || open))
-        return;
-    painter.drawRoundedRect(localRect(), {theme.smallRadius, 0, themeCorners()},
-                            color(open ? SettingsColor::RowComboBoxOpen : SettingsColor::RowComboBoxHovered));
+    if (isEnabled() && (m_hovered || open))
+        painter.drawRoundedRect(localRect(), {7, 0, themeCorners()},
+                                color(open ? SettingsColor::RowComboBoxOpen : SettingsColor::RowComboBoxHovered));
+    const double x = geometry().width - kChevron / 2;
+    const double y = geometry().height / 2;
+    const Color ink = (isEnabled() ? theme.text : theme.disabledText).withAlpha(isEnabled() ? 0.88 : 0.43);
+    painter.drawSmoothRectangle({x - 10, y - 10, 20, 20}, 10, theme.text.withAlpha(isEnabled() ? 0.075 : 0.045));
+    for (double sign : {-1., 1.}) {
+        painter.drawLine({x - 3, y + sign * 1.3}, {x, y + sign * 4.5}, ink, 1.25);
+        painter.drawLine({x, y + sign * 4.5}, {x + 3, y + sign * 1.3}, ink, 1.25);
+    }
 }
 
 // The chevron's colour and fade follow the state, set in layout().

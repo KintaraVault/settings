@@ -35,7 +35,7 @@ class SettingsWindow
 public:
     // Room for the header buttons with as much space below them as above;
     // content starts under it.
-    static constexpr double headerHeight = 40;
+    static constexpr double headerHeight = 54;
 
     SettingsWindow();
     ~SettingsWindow();
@@ -72,6 +72,8 @@ public:
     bool canGoForward() const { return historyStep(1) >= 0; }
 
     Page* currentPage() const { return m_page; }
+    bool isPageAvailable(const std::string& id) const;
+    cutefish::base::Signal<> pageAvailabilityChanged;
 
     bool isActive() const;
     // After the window's active state changed.

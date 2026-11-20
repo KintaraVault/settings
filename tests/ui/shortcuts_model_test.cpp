@@ -254,8 +254,8 @@ TEST_F(ShortcutsModelTest, PageListsTheActionsInTheirSections)
     settingsWindow.pushPage("shortcuts");
     window.grab();
     // One shortcut fits the plain row; two stack, with 4 px between and around them.
-    EXPECT_EQ(settings::testing::windowRect(window, "shortcut:lock-screen").height, 44);
-    EXPECT_EQ(settings::testing::windowRect(window, "shortcut:toggle-maximized").height, 72);
+    EXPECT_EQ(settings::testing::windowRect(window, "shortcut:lock-screen").height, 42);
+    EXPECT_EQ(settings::testing::windowRect(window, "shortcut:toggle-maximized").height, 70);
     EXPECT_FALSE(settings::testing::findView(window.contentView(), "shortcuts:restoreAll")->isEnabled());
 }
 

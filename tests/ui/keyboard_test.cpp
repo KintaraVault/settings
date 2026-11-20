@@ -87,10 +87,10 @@ TEST(KeyboardLayoutPage, FiltersByNameOrIdAndSaysWhenNothingMatches)
     // The list fills the page below the search field, with the page margins.
     const RectF search = settings::testing::windowRect(window, "keyboardlayout:search");
     const RectF list = settings::testing::windowRect(window, "keyboardlayout:list");
-    EXPECT_EQ(search.x, 254);
-    EXPECT_EQ(search.y, 52);
+    EXPECT_EQ(search.x, 252);
+    EXPECT_EQ(search.y, 64);
     EXPECT_EQ(list.y, search.y + search.height + 16);
-    EXPECT_EQ(list.y + list.height, 610 - 24);
+    EXPECT_EQ(list.y + list.height, 610 - 20);
     EXPECT_TRUE(settings::testing::isHidden(window, "keyboardlayout:empty"));
 
     TestInput::setKeyboardFocus(window, true);

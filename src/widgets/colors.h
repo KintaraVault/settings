@@ -30,6 +30,10 @@ enum class SettingsColor : uint16_t {
     GraphGrid,
     GraphBaseline,
     GraphProbe,
+
+    PageBackground,
+    CardBackground,
+    CardSeparator,
 };
 
 void addSettingsColors(cutefish::ui::ColorMixer& mixer, const cutefish::ui::Theme& theme);

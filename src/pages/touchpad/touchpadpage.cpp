@@ -7,7 +7,9 @@
 #include "pages/input/availability.h"
 #include "pages/touchpad/touchpad.h"
 #include "ui/slider.h"
+#include "ui/segmented_control.h"
 #include "widgets/card.h"
+#include "widgets/inputpreview.h"
 #include "widgets/listrow.h"
 #include "widgets/rowcombobox.h"
 #include "widgets/sliderrow.h"
@@ -35,8 +37,9 @@ class TouchpadPage : public Page
 {
 public:
     explicit TouchpadPage(SettingsWindow& window)
-        : Page(window, tr("Touchpad"))
+        : Page(window, tr("Trackpad"))
     {
+        content()->addChild<InputPreview>(InputPreview::Device::Trackpad);
         m_deviceCard = content()->addChild<Card>(Card::Style::List);
         m_deviceCard->setName("touchpad:device");
         m_enabled = m_deviceCard->addChild<SwitchRow>(tr("Enable"));
@@ -46,8 +49,20 @@ public:
         m_disableWhileTyping = m_deviceCard->addChild<SwitchRow>(tr("Disable while typing"));
         m_disableWhileTyping->onToggled = [this](bool checked) { m_touchpad.setDisableWhileTyping(checked); };
 
+        auto* tabs = content()->addChild<SegmentedControl>(
+            std::vector<std::string>{tr("Point & Click"), tr("Scrolling")}, SegmentedControl::Style::Accent);
+        tabs->setName("touchpad:tabs");
+        tabs->setLayoutHints({.fillWidth = true});
         m_gestureCard = content()->addChild<Card>(Card::Style::List);
         m_gestureCard->setName("touchpad:gestures");
+        m_pointerSpeed = m_gestureCard->addChild<SliderRow>(tr("Tracking speed"));
+        m_pointerSpeed->setCaptions(tr("Slow"), tr("Fast"));
+        m_pointerSpeed->setRange(0, kPointerSteps);
+        m_pointerSpeed->setStepSize(1);
+        m_pointerSpeed->slider()->setSnapMode(Slider::SnapMode::SnapAlways);
+        m_pointerSpeed->onMoved = [this](double value) {
+            m_touchpad.setPointerAcceleration(std::round(value) * 2 / kPointerSteps - 1);
+        };
         m_tapToClick = m_gestureCard->addChild<SwitchRow>(tr("Tap to click"));
         m_tapToClick->onToggled = [this](bool checked) { m_touchpad.setTapToClick(checked); };
         m_tapDragging = m_gestureCard->addChild<SwitchRow>(tr("Tap and drag"));
@@ -59,16 +74,16 @@ public:
         m_secondaryClickMethod = m_secondaryClick->addContent<RowComboBox>(
                 std::vector<std::string>{tr("Two-finger press"), tr("Bottom-right corner press")});
         m_secondaryClickMethod->onActivated = [this](int index) { m_touchpad.setTwoFingerSecondaryClick(index == 0); };
-        m_naturalScroll = m_gestureCard->addChild<SwitchRow>(tr("Natural scrolling"));
-        m_naturalScroll->onToggled = [this](bool checked) { m_touchpad.setNaturalScroll(checked); };
-        m_pointerSpeed = m_gestureCard->addChild<SliderRow>(tr("Pointer speed"));
-        m_pointerSpeed->setRange(0, kPointerSteps);
-        m_pointerSpeed->setStepSize(1);
-        m_pointerSpeed->slider()->setSnapMode(Slider::SnapMode::SnapAlways);
-        m_pointerSpeed->onMoved = [this](double value) {
-            m_touchpad.setPointerAcceleration(std::round(value) * 2 / kPointerSteps - 1);
+        m_scrollCard = content()->addChild<Card>(Card::Style::List);
+        m_scrollCard->setName("touchpad:scrolling");
+        m_scrollCard->setVisible(false);
+        tabs->onCurrentChanged = [this](int index) {
+            m_gestureCard->setVisible(index == 0);
+            m_scrollCard->setVisible(index == 1);
         };
-        m_scrollSpeed = m_gestureCard->addChild<SliderRow>(tr("Scroll speed"));
+        m_naturalScroll = m_scrollCard->addChild<SwitchRow>(tr("Natural scrolling"));
+        m_naturalScroll->onToggled = [this](bool checked) { m_touchpad.setNaturalScroll(checked); };
+        m_scrollSpeed = m_scrollCard->addChild<SliderRow>(tr("Scroll speed"));
         m_scrollSpeed->setName("touchpad:scrollSpeed");
         m_scrollSpeed->setRange(0, kScrollSteps);
         m_scrollSpeed->setStepSize(1);
@@ -94,6 +109,7 @@ private:
         m_disableWhileTyping->setChecked(m_touchpad.disableWhileTyping());
 
         m_gestureCard->setEnabled(available && enabled);
+        m_scrollCard->setEnabled(available && enabled);
         m_tapToClick->setChecked(m_touchpad.tapToClick());
         // Tap and drag starts with a tap, so it needs tapping on.
         m_tapDragging->setEnabled(m_touchpad.tapToClick());
@@ -113,6 +129,7 @@ private:
     SwitchRow* m_disableWithMouse;
     SwitchRow* m_disableWhileTyping;
     Card* m_gestureCard;
+    Card* m_scrollCard;
     SwitchRow* m_tapToClick;
     SwitchRow* m_tapDragging;
     ListRow* m_secondaryClick;

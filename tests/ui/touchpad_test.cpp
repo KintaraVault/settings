@@ -9,6 +9,7 @@
 
 #include "input_test_support.h"
 #include "pages/touchpad/touchpad.h"
+#include "ui/test_input.h"
 #include "ui/window.h"
 #include "widgets/sliderrow.h"
 #include "window/settingswindow.h"
@@ -114,11 +115,17 @@ TEST_F(TouchpadTest, PageFollowsWhatThePadCanDo)
     settingsWindow.switchToPage("touchpad");
     window.grab();
 
-    // Both cards, the second without the secondary click row.
-    EXPECT_EQ(settings::testing::windowRect(window, "touchpad:device").height, 3 * 44);
+    // The device controls sit above the tabs; Point & Click has no secondary click row.
+    EXPECT_EQ(settings::testing::windowRect(window, "touchpad:device").height, 3 * 38);
     const RectF gestures = settings::testing::windowRect(window, "touchpad:gestures");
-    EXPECT_EQ(gestures.y, 52 + 3 * 44 + 24);
-    EXPECT_EQ(gestures.height, 3 * 44 + 2 * 52);
+    EXPECT_NEAR(gestures.y, 375, 0.5);
+    EXPECT_EQ(gestures.height, 2 * 38 + 56);
+    EXPECT_TRUE(settings::testing::isHidden(window, "touchpad:scrolling"));
+    const RectF tabs = settings::testing::windowRect(window, "touchpad:tabs");
+    TestInput::click(window, {tabs.x + tabs.width * 0.75, tabs.y + tabs.height / 2});
+    window.grab();
+    EXPECT_FALSE(settings::testing::isHidden(window, "touchpad:scrolling"));
+    EXPECT_TRUE(settings::testing::isHidden(window, "touchpad:gestures"));
     EXPECT_TRUE(settings::testing::isHidden(window, "touchpad:secondaryClick"));
     // Tap and drag needs tapping on.
     EXPECT_FALSE(settings::testing::findView(window.contentView(), "touchpad:tapDragging")->isEnabled());

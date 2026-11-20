@@ -5,18 +5,18 @@
 
 #include "ui/icon.h"
 #include "ui/painter.h"
+#include "ui/theme.h"
 #include "widgets/picture.h"
 
 using namespace cutefish::ui;
 
 namespace settings {
 
-static constexpr double kGlyph = 16;
-
 RowIcon::RowIcon(std::string glyph, Color tint)
 {
     m_picture = addChild<Picture>();
-    m_glyph = addChild<Icon>(std::string(), kGlyph);
+    m_glyph = addChild<Icon>();
+    m_glyph->setInkCentered(true);
     set(std::move(glyph), tint);
 }
 
@@ -39,14 +39,22 @@ void RowIcon::set(std::string glyph, Color tint)
 
 void RowIcon::layout()
 {
-    const RectF glyph{(geometry().width - kGlyph) / 2, (geometry().height - kGlyph) / 2, kGlyph, kGlyph};
+    const double side = std::round(std::min(geometry().width, geometry().height) * 0.67);
+    const RectF glyph{(geometry().width - side) / 2, (geometry().height - side) / 2, side, side};
+    m_glyph->setSize(side);
     m_picture->setGeometry(glyph);
     m_glyph->setGeometry(glyph);
 }
 
 void RowIcon::paint(Painter& painter)
 {
-    painter.fillRoundedRect(localRect(), 6, LinearGradient::vertical(localRect(), m_tint.lighter(1.15), m_tint));
+    const RectF rect = localRect();
+    const bool dark = Theme::current().darkMode;
+    const auto top = dark ? m_tint.darker(1.35) : m_tint.lighter(1.14);
+    const auto bottom = dark ? m_tint.darker(1.75) : m_tint;
+    const double radius = std::min(rect.width, rect.height) * 0.24;
+    painter.fillRoundedRect(rect, radius, LinearGradient::vertical(rect, top, bottom));
+    painter.drawRoundedRect(rect, {radius}, Color{0, 0, 0, 0}, 0.5, Color::rgb(0xffffff).withAlpha(0.24));
 }
 
 } // namespace settings

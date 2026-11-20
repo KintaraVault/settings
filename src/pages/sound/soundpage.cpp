@@ -165,7 +165,8 @@ public:
         ColumnLayout* devices = content()->addChild<ColumnLayout>();
         devices->setSpacing(metrics::l);
         devices->setLayoutHints({.fillWidth = true});
-        m_tabs = devices->addChild<SegmentedControl>(std::vector<std::string>{tr("Output"), tr("Input")});
+        m_tabs = devices->addChild<SegmentedControl>(std::vector<std::string>{tr("Output"), tr("Input")},
+                                                     SegmentedControl::Style::Accent);
         m_tabs->setName("tabs");
         m_tabs->setLayoutHints({.fillWidth = true});
         m_tabs->onCurrentChanged = [this](int) {

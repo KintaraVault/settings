@@ -152,14 +152,14 @@ void FormDialog::setBackgroundColor(std::optional<ColorRecipe> color)
 {
     m_background = std::move(color);
     if (m_window)
-        m_window->setBackgroundColor(m_background.value_or(ColorId::SecondBackground));
+        m_window->setBackgroundColor(m_background.value_or(ColorId::PanelBackground));
 }
 
 void FormDialog::show()
 {
     if (!m_window)
         return;
-    m_window->setBackgroundColor(m_background.value_or(ColorId::SecondBackground));
+    m_window->setBackgroundColor(m_background.value_or(ColorId::PanelBackground));
     if (m_fixedHeight > 0) {
         m_window->resize({m_width, m_fixedHeight});
         m_window->setMinimumSize({m_width, m_fixedHeight});

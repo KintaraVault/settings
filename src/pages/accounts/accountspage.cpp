@@ -36,7 +36,7 @@ class AccountsPage : public Page
 {
 public:
     explicit AccountsPage(SettingsWindow& window)
-        : Page(window, tr("Users"))
+        : Page(window, tr("Users & Groups"))
     {
         m_users = content()->addChild<Card>(Card::Style::List);
         m_users->setLayoutHints({.fillWidth = true});

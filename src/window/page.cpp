@@ -10,6 +10,7 @@
 #include "ui/cell_layout.h"
 #include "ui/scroll_bar.h"
 #include "ui/theme.h"
+#include "widgets/colors.h"
 #include "widgets/metrics.h"
 #include "widgets/sections.h"
 #include "window/settingswindow.h"
@@ -72,7 +73,7 @@ Page::~Page() = default;
 // Opaque: only the sidebar shows the window's frosted backdrop.
 void Page::paint(Painter& painter)
 {
-    painter.fillRect(localRect(), Theme::current().background);
+    painter.fillRect(localRect(), color(SettingsColor::PageBackground));
 }
 
 PendingPage::PendingPage(SettingsWindow& window, std::string title)

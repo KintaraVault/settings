@@ -4,6 +4,7 @@
 #include "widgets/imageselectionitem.h"
 
 #include "ui/label.h"
+#include "ui/keys.h"
 #include "ui/painter.h"
 #include "ui/cell_layout.h"
 #include "ui/theme.h"
@@ -53,7 +54,7 @@ protected:
     {
         const RectF bounds = localRect();
         if (m_picture) {
-            m_picture->setCornerRadius(Theme::current().bigRadius);
+            m_picture->setCornerRadius(5);
             m_picture->setGeometry(bounds.shrunk(Margins::all(m_inset)));
         }
         if (m_icon) {
@@ -68,8 +69,8 @@ protected:
         if (!m_checked)
             return;
         const Theme& theme = Theme::current();
-        painter.drawRoundedRect(localRect(), {theme.bigRadius, -m_inset, themeCorners()}, Color{0, 0, 0, 0}, 2,
-                                theme.highlight);
+        painter.drawRoundedRect(localRect(), {5, -m_inset, themeCorners()}, Color{0, 0, 0, 0}, 2.5,
+                                isEnabled() ? theme.highlight : theme.disabledText.withAlpha(0.45));
     }
 
 private:
@@ -99,8 +100,9 @@ ImageSelectionItem::ImageSelectionItem(std::unique_ptr<View> icon, std::string t
 
 void ImageSelectionItem::build(std::string text)
 {
-    m_layout->setSpacing(metrics::s);
+    m_layout->setSpacing(metrics::xs);
     m_label = m_layout->addChild<Label>(std::move(text));
+    m_label->setFontSize(11);
     m_label->setVisible(!m_label->text().empty());
     m_label->setLayoutHints({.horizontalAlignment = Alignment::Center});
 }
@@ -128,7 +130,8 @@ double ImageSelectionItem::heightForWidth(double width) const
 void ImageSelectionItem::layout()
 {
     const Theme& theme = Theme::current();
-    m_label->setColor(m_checked ? theme.highlight : theme.text);
+    m_label->setWeight(m_checked ? 600 : 400);
+    m_label->setColor(m_checked && isEnabled() ? theme.text : theme.disabledText);
     m_layout->setGeometry(localRect());
 }
 
@@ -144,6 +147,15 @@ void ImageSelectionItem::pointerRelease(const PointerEvent& event)
     m_pressed = false;
     if (localRect().contains(event.position) && onClicked)
         onClicked();
+}
+
+bool ImageSelectionItem::keyPress(const KeyEvent& event)
+{
+    if (event.key != key::Return && event.key != key::Space && event.key != key::KeypadEnter)
+        return false;
+    if (onClicked)
+        onClicked();
+    return true;
 }
 
 } // namespace settings

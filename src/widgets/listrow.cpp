@@ -49,6 +49,7 @@ ListRow::ListRow(std::string text)
     m_leadingBox = m_row->addChild<Row>();
     m_leadingBox->setVisible(false);
     m_label = m_row->addChild<Label>(m_text);
+    m_label->setFadesWhenDisabled(false);
     // A window as narrow as half a screen wraps a long label beside its
     // control rather than cutting it.
     m_label->setWrap(true);
@@ -273,7 +274,6 @@ ListRow::Neighbours ListRow::neighbours() const
 
 void ListRow::paint(Painter& painter)
 {
-    const Theme& theme = Theme::current();
     const Neighbours around = neighbours();
     const double width = geometry().width;
     const double rowHeight = m_row->geometry().height;
@@ -283,7 +283,7 @@ void ListRow::paint(Painter& painter)
     // meet. Corners that meet a neighbouring row, or the row's own unfolded
     // details, are pushed outside the clip.
     if (isHighlighted()) {
-        const double radius = theme.bigRadius;
+        const double radius = metrics::cardRadius;
         const double top = around.first ? 0 : -radius;
         const double bottom = around.last && !m_expanded ? rowHeight : rowHeight + radius;
         painter.save();
@@ -302,7 +302,7 @@ void ListRow::paint(Painter& painter)
         const double pixel = 1 / painter.scale();
         painter.drawRoundedRect({metrics::cardHorizontalPadding, height - pixel,
                                  width - 2 * metrics::cardHorizontalPadding, pixel},
-                                {}, color(ColorId::Separator));
+                                {}, color(SettingsColor::CardSeparator));
     }
 }
 

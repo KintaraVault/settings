@@ -4,10 +4,13 @@
 #include <cstdio>
 #include <string>
 
+#include "base/timer.h"
 #include "ui/application.h"
+#include "ui/test_input.h"
 #include "ui/theme.h"
 #include "ui/window.h"
 #include "widgets/picture.h"
+#include "window/options.h"
 #include "window/page.h"
 #include "window/pagelist.h"
 #include "window/settingswindow.h"
@@ -28,13 +31,16 @@ int main(int argc, char** argv)
     }
     Application application(argc, argv, Application::Platform::Headless);
     settings::setDataDirectory(SETTINGS_SOURCE_DIR);
+    settings::setOptions({.mockNetwork = true, .mockBattery = true});
     const std::string directory = argv[1];
     std::vector<std::string> ids;
     for (int i = 2; i < argc; ++i)
         ids.push_back(argv[i]);
     if (ids.empty()) {
-        for (const settings::PageInfo& page : settings::pages())
-            ids.push_back(page.id);
+        for (const settings::PageInfo& page : settings::pages()) {
+            if (page.create)
+                ids.push_back(page.id);
+        }
     }
     const Theme light = Theme::current();
     int failures = 0;
@@ -50,7 +56,8 @@ int main(int argc, char** argv)
                 }
                 settings::SettingsWindow window;
                 window.window().setScale(scale);
-                window.window().resize({900, 820});
+                window.window().resize({740, 690});
+                TestInput::configure(window.window(), 740, 690, {.activated = true});
                 if (!page->name.empty())
                     window.switchToPage(page->name);
                 else {
@@ -58,6 +65,15 @@ int main(int argc, char** argv)
                     window.pushPage(page->id);
                 }
                 window.reveal();
+                // Wait for the preview's asynchronous wallpaper decode.
+                if (id == "appearance" || id == "display" || id == "background") {
+                    window.window().grab(kFrameNs);
+                    cutefish::base::Timer settle;
+                    settle.setSingleShot(true);
+                    settle.onTimeout = [&application] { application.quit(); };
+                    settle.start(std::chrono::milliseconds(150));
+                    application.run();
+                }
                 char name[256];
                 snprintf(name, sizeof(name), "%s/%s_%s@%g", directory.c_str(), mode, id.c_str(), scale);
                 if (!window.window().grab(kFrameNs).savePng(std::string(name) + ".png")) {

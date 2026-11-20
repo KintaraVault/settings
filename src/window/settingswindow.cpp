@@ -27,6 +27,7 @@
 #include "ui/window.h"
 #include "ui/window_controls.h"
 #include "ui/window_header.h"
+#include "widgets/colors.h"
 #include "widgets/metrics.h"
 #include "window/page.h"
 #include "window/pagelist.h"
@@ -66,10 +67,13 @@ public:
         : m_sidebar(sidebar)
     {
         m_row = addChild<RowLayout>();
+        m_row->setSpacing(0);
         navigation = m_row->addChild<NavigationButtons>();
         back = navigation->back();
+        back->setGlyph("chevron-left", 19);
         back->setName("back");
         forward = navigation->forward();
+        forward->setGlyph("chevron-right", 19);
         forward->setName("forward");
         title = m_row->addChild<Label>();
         title->setName("title");
@@ -89,26 +93,25 @@ protected:
         const Window* window = this->window();
         const double scale = window ? window->scale() : 1;
         const auto snap = [scale](double value) { return std::round(value * scale) / scale; };
-        const SizeF plate = navigation->sizeHint();
+        const SizeF plate{74, 36};
         LayoutHints buttons{.preferredWidth = plate.width, .preferredHeight = plate.height,
                             .verticalAlignment = Alignment::Start};
         // The plate is centred on the window buttons' line.
-        buttons.margins.top = static_cast<const WindowHeader*>(parent())->buttonsTop()
-                - (plate.height - window_controls::kButton) / 2;
+        buttons.margins.top = (SettingsWindow::headerHeight - plate.height) / 2;
         if (!(navigation->layoutHints().margins == buttons.margins))
             navigation->setLayoutHints(buttons);
         LayoutHints text{.fillWidth = true, .verticalAlignment = Alignment::Start};
         // The title's capitals are centred on the plate.
         const double capCenter = buttons.margins.top + plate.height / 2;
         const double textBaseline = snap(capCenter + title->capHeight() / 2);
-        text.margins = {theme.smallSpacing, snap(textBaseline - title->baselineOffset()), 0, 0};
+        text.margins = {12, snap(textBaseline - title->baselineOffset()), 0, 0};
         if (!(title->layoutHints().margins == text.margins))
             title->setLayoutHints(text);
 
         const bool active = !window || window->isActive();
         title->setColor(active ? withAlpha(ColorId::Text, 0.85) : ColorRecipe(theme.disabledText));
         // The plate keeps its top margin from the sidebar's edge too.
-        const double left = snap(m_sidebar->geometry().width + buttons.margins.top);
+        const double left = snap(m_sidebar->geometry().width + 8);
         m_row->setGeometry({left, 0, std::max(0.0, geometry().width - left - theme.smallSpacing),
                             geometry().height});
     }
@@ -127,6 +130,8 @@ public:
         : WindowHeader(SettingsWindow::headerHeight)
         , m_window(window)
     {
+        setButtonMargin(10);
+        setButtonsCentered(true);
     }
 
 protected:
@@ -185,7 +190,9 @@ public:
             cutefish::base::EventLoop::current()->post([old] {});
         }
         backdrop = addChild<HeaderBackdrop>(view);
-        backdrop->setBaseColor(backdropBase);
+        backdrop->setBaseColor(SettingsColor::PageBackground);
+        backdrop->setTintColor(SettingsColor::PageBackground);
+        backdrop->setSeparatorVisible(false);
         raiseChild(header);
         raiseChild(divider);
         requestLayout();
@@ -196,7 +203,6 @@ public:
     Sidebar* sidebar;
     View* pages;
     HeaderBackdrop* backdrop = nullptr;
-    Color backdropBase;
     SettingsHeader* header;
     HeaderBar* bar;
     SidebarDivider* divider;
@@ -230,7 +236,7 @@ SettingsWindow::SettingsWindow()
     , m_revealTimer(std::make_unique<cutefish::base::Timer>())
 {
     m_window->setTitle(tr("Settings"));
-    m_window->resize({882, 600});
+    m_window->resize({740, 690});
     // Half of a 1280-wide screen, so the window can be split beside another.
     m_window->setMinimumSize({640, 500});
     // Under the key the Qt version's main.qml kept it.
@@ -273,8 +279,10 @@ SettingsWindow::SettingsWindow()
 
     for (const PageInfo& page : pages()) {
         const bool sidebarPage = !page.category.empty();
-        if (sidebarPage && page.initiallyAvailable)
+        if (sidebarPage && page.initiallyAvailable && page.create)
             m_available.push_back(page.id);
+        if (!sidebarPage)
+            m_sidebar->setSubPageAvailable(page.id, page.initiallyAvailable && bool(page.create));
         if (!page.watchAvailability)
             continue;
         m_unanswered.push_back(page.id);
@@ -326,7 +334,12 @@ void SettingsWindow::reveal()
 void SettingsWindow::setAvailable(const PageInfo& page, bool available)
 {
     if (page.category.empty()) {
+        const bool changed = m_sidebar->isSubPageAvailable(page.id) != available;
         m_sidebar->setSubPageAvailable(page.id, available);
+        if (changed)
+            pageAvailabilityChanged.emit();
+        if (available && page.id == m_pendingPage)
+            switchToPage(page.name);
         return;
     }
     const bool present = std::find(m_available.begin(), m_available.end(), page.id) != m_available.end();
@@ -339,6 +352,7 @@ void SettingsWindow::setAvailable(const PageInfo& page, bool available)
     const bool currentRemoved = !available && m_historyIndex >= 0
             && m_history[size_t(m_historyIndex)].rootPage == page.id;
     updateSidebar();
+    pageAvailabilityChanged.emit();
     if (currentRemoved)
         switchToIndex(0);
     else if (available && m_pendingPage == page.id)
@@ -360,6 +374,12 @@ bool SettingsWindow::isInSidebar(const std::string& id) const
 {
     const auto& entries = m_sidebar->entries();
     return std::any_of(entries.begin(), entries.end(), [&id](const PageInfo* page) { return page->id == id; });
+}
+
+bool SettingsWindow::isPageAvailable(const std::string& id) const
+{
+    const auto* page = findPage(id);
+    return page && page->create && (page->category.empty() ? m_sidebar->isSubPageAvailable(id) : isInSidebar(id));
 }
 
 // Skips entries whose sidebar page has since been removed, e.g. Bluetooth.
@@ -418,7 +438,7 @@ void SettingsWindow::updateHeader()
 {
     m_back->setEnabled(canGoBack());
     m_forward->setEnabled(canGoForward());
-    m_title->setText(m_page ? m_page->title() : std::string());
+    m_title->setText(m_page && m_page->name() != "page:general" ? m_page->title() : std::string());
 }
 
 void SettingsWindow::updateBackground()
@@ -426,10 +446,7 @@ void SettingsWindow::updateBackground()
     const Theme& theme = Theme::current();
     const bool active = m_window->isActive();
     m_window->setBackgroundColor(
-        color(active ? ColorId::TranslucentWindowBackground : ColorId::TranslucentWindowBackgroundInactive));
-    m_root->backdropBase = theme.background;
-    if (m_root->backdrop)
-        m_root->backdrop->setBaseColor(theme.background);
+        active ? ColorId::TranslucentWindowBackground : ColorId::TranslucentWindowBackgroundInactive);
     const SizeF size = m_window->size();
     m_window->setBackgroundBlur({0, 0, size.width, size.height}, theme.windowRadius);
 }
@@ -450,18 +467,18 @@ void SettingsWindow::switchToPage(const std::string& name, const std::string& ac
         if (!info.name.empty() && info.name == name)
             page = &info;
     }
-    if (page) {
+    if (page && page->create) {
         // Entries that come with hardware may join the sidebar after the request.
-        m_pendingPage = !page->initiallyAvailable && !isInSidebar(page->id) ? page->id : std::string();
+        m_pendingPage.clear();
         if (page->category.empty()) {
-            // A sub page opens under its sidebar page, as if reached from there.
-            if (isInSidebar(page->parentId)) {
-                m_pendingPage.clear();
+            if (!m_sidebar->isSubPageAvailable(page->id))
+                m_pendingPage = page->id;
+            else if (isInSidebar(page->parentId))
                 navigate(page->id, page->parentId);
-            }
         } else if (isInSidebar(page->id)) {
-            m_pendingPage.clear();
             navigate(page->id, page->id);
+        } else if (page->watchAvailability) {
+            m_pendingPage = page->id;
         }
     }
     // A minimized window is shown again.

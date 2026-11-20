@@ -31,9 +31,8 @@ using cutefish::i18n::tr;
 namespace settings {
 
 static constexpr double kSearchHeight = 28;
-static constexpr double kTitlePointSize = 12;
-static constexpr double kItemPointSize = 8;
-static constexpr double kIconTile = 24;
+static constexpr double kItemPointSize = 9.75;
+static constexpr double kIconTile = 20;
 
 static bool windowActive(const View* view)
 {
@@ -61,10 +60,12 @@ public:
         if (current == m_current)
             return;
         m_current = current;
+        requestLayout();
         requestPaint();
     }
 
     bool acceptsPointer() const override { return true; }
+    bool acceptsFocus() const override { return true; }
 
     std::function<void()> onClicked;
 
@@ -74,33 +75,19 @@ protected:
         const Theme& theme = Theme::current();
         const double height = geometry().height;
         m_icon->setGeometry({metrics::sidebarItemPadding, (height - kIconTile) / 2, kIconTile, kIconTile});
-        const double x = metrics::sidebarItemPadding + kIconTile + metrics::s;
-        m_title->setGeometry({x, 0, std::max(0.0, geometry().width - x), height});
-        // 8pt text reads lighter than its colour, so the inactive grey leans
-        // towards the text colour.
-        const Color text = theme.text;
-        const Color grey = theme.disabledText;
-        const double weight = 0.35 * text.a / 255.0;
-        const auto tint = [weight](uint8_t from, uint8_t to) {
-            return uint8_t(std::lround(from + (to - from) * weight));
-        };
-        m_title->setColor(windowActive(this) ? text
-                                             : Color{tint(grey.r, text.r), tint(grey.g, text.g),
-                                                     tint(grey.b, text.b), grey.a});
+        const double x = metrics::sidebarItemPadding + kIconTile + 7;
+        m_title->setGeometry({x, 0, std::max(0.0, geometry().width - x - 5), height});
+        m_title->setWeight(m_current ? 600 : 400);
+        m_title->setColor(m_current && windowActive(this) ? theme.highlightedText : theme.text);
     }
 
     void paint(Painter& painter) override
     {
         const Theme& theme = Theme::current();
-        // The current entry carries the list's highlight under its own fill,
-        // as the Qt version's list did.
-        if (m_current)
-            painter.drawRoundedRect(localRect(), {theme.mediumRadius, 0, themeCorners()}, theme.text.withAlpha(0.05));
-        if (m_pressed || m_current) {
-            painter.drawRoundedRect(
-                localRect(), {theme.mediumRadius, 0, themeCorners()},
-                m_pressed ? color(ColorId::ItemPressed) : color(SettingsColor::SidebarItemCurrent));
-        }
+        if (m_current || m_pressed)
+            painter.drawRoundedRect(localRect(), {8, 0, themeCorners()},
+                m_current && windowActive(this) ? color(SettingsColor::SidebarItemCurrent)
+                    : theme.text.withAlpha(m_pressed ? 0.15 : 0.10));
     }
 
     void pointerPress(const PointerEvent& event) override
@@ -121,6 +108,15 @@ protected:
             onClicked();
     }
 
+    bool keyPress(const KeyEvent& event) override
+    {
+        if (event.key != key::Return && event.key != key::Space && event.key != key::KeypadEnter)
+            return false;
+        if (onClicked)
+            onClicked();
+        return true;
+    }
+
 private:
     const PageInfo& m_page;
     RowIcon* m_icon;
@@ -129,42 +125,7 @@ private:
     bool m_pressed = false;
 };
 
-// A category's name above its entries.
-class SidebarSection : public View
-{
-public:
-    explicit SidebarSection(std::string text)
-    {
-        m_label = addChild<Label>(std::move(text));
-        m_label->setFontSize(metrics::points(kItemPointSize));
-        m_metrics = addChild<Label>("X");
-        m_metrics->setVisible(false);
-    }
-
-    // The default font's line height, whole, so the rows below stay on the
-    // pixel grid.
-    SizeF sizeHint() const override
-    {
-        return {0, std::ceil(m_metrics->sizeHint().height) + metrics::sidebarCategorySpacing + metrics::xs};
-    }
-
-protected:
-    void layout() override
-    {
-        m_label->setColor(Theme::current().disabledText);
-        const SizeF label = m_label->sizeHint();
-        m_label->setGeometry({metrics::sidebarItemPadding, metrics::sidebarCategorySpacing,
-                              std::max(0.0, geometry().width - 2 * metrics::sidebarItemPadding), label.height});
-    }
-
-private:
-    Label* m_label;
-    Label* m_metrics;
-};
-
-// The entries of the sidebar or of a search, by category, as a list view
-// with sections lays them out: a section sits right above its first entry,
-// and the spacing runs between entries.
+// Category names remain searchable, but groups are separated only by space.
 class SidebarList : public View
 {
 public:
@@ -180,13 +141,8 @@ public:
             takeChild(children().front().get());
         m_entries = std::move(entries);
         m_items.clear();
-        std::string category;
         for (size_t i = 0; i < m_entries.size(); ++i) {
             const Entry& entry = m_entries[i];
-            if (i == 0 || entry.rootPage->category != category) {
-                category = entry.rootPage->category;
-                addChild<SidebarSection>(tr(category.c_str()));
-            }
             SidebarItem* item = addChild<SidebarItem>(*entry.page);
             item->setName(m_namePrefix + entry.page->id);
             item->onClicked = [this, i] {
@@ -247,18 +203,15 @@ private:
     double measure(SidebarList* place) const
     {
         const double width = geometry().width - 2 * metrics::sidebarMargin;
-        double y = 0;
-        bool first = true;
-        for (const auto& child : children()) {
-            const bool section = dynamic_cast<SidebarSection*>(child.get()) != nullptr;
-            if (!section && !first)
+        double y = metrics::s;
+        for (size_t i = 0; i < m_items.size(); ++i) {
+            if (i > 0 && m_entries[i].rootPage->category != m_entries[i - 1].rootPage->category)
+                y += metrics::sidebarCategorySpacing;
+            else if (i > 0)
                 y += metrics::sidebarItemSpacing;
-            const double height = section ? child->sizeHint().height : metrics::sidebarItemHeight;
             if (place)
-                child->setGeometry({metrics::sidebarMargin, y, width, height});
-            y += height;
-            if (!section)
-                first = false;
+                m_items[i]->setGeometry({metrics::sidebarMargin, y, width, metrics::sidebarItemHeight});
+            y += metrics::sidebarItemHeight;
         }
         return y + metrics::sidebarMargin;
     }
@@ -272,12 +225,6 @@ private:
 
 Sidebar::Sidebar()
 {
-    m_title = addChild<Label>(tr("Settings"));
-    m_title->setFontSize(metrics::points(kTitlePointSize));
-    m_title->setVerticallyCentered(true);
-    // Never shown: the window buttons take its line, and the header's title
-    // follows its baseline.
-    m_title->setVisible(false);
     m_search = addChild<SearchField>();
     m_search->setName("search");
     m_search->onTextChanged = [this] { updateResults(); };
@@ -325,7 +272,6 @@ void Sidebar::setEntries(std::vector<const PageInfo*> entries)
 
 void Sidebar::retranslate()
 {
-    m_title->setText(tr("Settings"));
     m_search->setPlaceholder(tr("Search"));
     m_noResults->setText(tr("No results"));
     setEntries(m_entries);
@@ -340,6 +286,11 @@ void Sidebar::setSubPageAvailable(const std::string& id, bool available)
         m_unavailableSubPages.push_back(id);
     if (isSearching())
         updateResults();
+}
+
+bool Sidebar::isSubPageAvailable(const std::string& id) const
+{
+    return std::find(m_unavailableSubPages.begin(), m_unavailableSubPages.end(), id) == m_unavailableSubPages.end();
 }
 
 void Sidebar::setCurrent(const std::string& page, const std::string& rootPage)
@@ -509,6 +460,11 @@ void Sidebar::updateResults()
                 m_results.push_back({&sub, entry});
             }
         }
+        // A title match must outrank a keyword elsewhere (e.g. Fonts vs.
+        // the colour or folder options in Appearance).
+        std::stable_partition(m_results.begin(), m_results.end(), [&words](const Result& result) {
+            return matches(words, {tr(result.page->title.c_str())});
+        });
     }
     std::vector<SidebarList::Entry> list;
     for (const Result& result : m_results)
@@ -570,15 +526,7 @@ void Sidebar::layout()
     const Theme& theme = Theme::current();
     const double width = geometry().width;
     const double height = geometry().height;
-    const bool active = windowActive(this);
-    // The title's line is the file manager's sidebar title's: centred in the
-    // header height, pushed down by smallSpacing.
-    const double titleHeight = 40 + metrics::m;
-    const double titleLeft = metrics::sidebarMargin + metrics::sidebarItemPadding;
-    m_title->setColor(active ? theme.text : theme.disabledText);
-    m_title->setGeometry({titleLeft, theme.smallSpacing, std::max(0.0, width - 2 * titleLeft),
-                          titleHeight - theme.smallSpacing - metrics::m});
-    const double searchTop = SettingsWindow::headerHeight + metrics::sidebarTopMargin;
+    const double searchTop = SettingsWindow::headerHeight + 7;
     m_search->setGeometry({metrics::sidebarMargin, searchTop, width - 2 * metrics::sidebarMargin, kSearchHeight});
     const double listTop = searchTop + kSearchHeight;
     m_listScroll->setGeometry({0, listTop, width, height - listTop});
@@ -593,14 +541,6 @@ void Sidebar::paint(Painter& painter)
 {
     painter.fillRect(localRect(), color(SettingsColor::SidebarBackground));
 
-    // The header backdrop's hairline, down the edge: 0.5 px, below 2x a
-    // device pixel with its alpha scaled to the same weight.
-    const double scale = painter.scale();
-    const double devicePixels = std::max(1.0, std::round(0.5 * scale));
-    const double lineWidth = devicePixels / scale;
-    const Color separator = color(ColorId::HeaderSeparator);
-    painter.drawRoundedRect({geometry().width - lineWidth, 0, lineWidth, geometry().height}, {0},
-                            separator.withAlpha(separator.a / 255.0 * 0.5 * scale / devicePixels));
 }
 
 } // namespace settings

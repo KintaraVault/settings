@@ -74,7 +74,6 @@ private:
     std::optional<std::string> m_displayText;
     cutefish::ui::ThemeIcon* m_icon;
     cutefish::ui::Label* m_label;
-    cutefish::ui::Icon* m_chevron;
     std::unique_ptr<cutefish::ui::Menu> m_menu;
     bool m_hovered = false;
     bool m_fontPreview = false;

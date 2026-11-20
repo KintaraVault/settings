@@ -1,13 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <algorithm>
+
 #include "base/i18n.h"
 #include "cutefish/networkmanager/connections.h"
 #include "cutefish/networkmanager/handler.h"
+#include "pages/network/common/networklist.h"
 #include "ui/cell_layout.h"
 #include "widgets/card.h"
 #include "widgets/listrow.h"
+#include "widgets/paneintro.h"
 #include "widgets/rowicon.h"
+#include "widgets/sections.h"
 #include "window/page.h"
 #include "window/pagelist.h"
 #include "window/settingswindow.h"
@@ -27,11 +32,15 @@ public:
     explicit NetworkPage(SettingsWindow& window)
         : Page(window, tr("Network"))
     {
-        Card* card = content()->addChild<Card>(Card::Style::List);
-        NavigationItem* vpn = card->addChild<NavigationItem>(tr("VPN"));
-        vpn->setName("network:vpn");
-        vpn->setLeading<RowIcon>("network-vpn", Color::rgb(0x48484C));
-        vpn->onClicked = [this] { settingsWindow().pushPage("vpn"); };
+        auto* devices = content()->addChild<Card>(Card::Style::List);
+        m_wifi = addPageLink(devices, window, "wlan", true);
+        m_ethernet = addPageLink(devices, window, "ethernet", true);
+
+        auto* services = content()->addChild<Section>(tr("Other Services"));
+        Card* card = services->addChild<Card>(Card::Style::List);
+        auto* vpn = addPageLink(card, window, "vpn", true);
+        if (vpn)
+            vpn->setName("network:vpn");
 
         NavigationItem* proxy = card->addChild<NavigationItem>(tr("Proxy"));
         proxy->setName("network:proxy");
@@ -45,6 +54,7 @@ public:
 
         m_subscriptions.push_back(m_enabled.changed.connect([this] { update(); }));
         m_subscriptions.push_back(m_handler.hotspotSupportedChanged.connect([this] { update(); }));
+        m_subscriptions.push_back(m_connections.changed.connect([this] { update(); }));
         update();
     }
 
@@ -53,12 +63,29 @@ private:
     {
         // Shown until NetworkManager has been read, so the row doesn't pop in late.
         m_hotspot->setVisible(!m_enabled.isReady() || m_handler.hotspotCapable());
+        updateDevice(m_wifi, nm::ConnectionType::Wireless);
+        updateDevice(m_ethernet, nm::ConnectionType::Wired);
     }
 
+    void updateDevice(NavigationItem* row, nm::ConnectionType type)
+    {
+        if (!row)
+            return;
+        const auto found = m_connections.rows(type);
+        row->setVisible(type == nm::ConnectionType::Wireless || !found.empty());
+        const bool connected = std::any_of(found.begin(), found.end(), [](const auto& item) {
+            return item.connectionState == nm::ConnectionStatus::Activated;
+        });
+        row->setValue(connected ? tr("Connected") : tr("Not connected"));
+    }
+
+    NetworkList m_connections;
     nm::EnabledConnections m_enabled;
     nm::Handler m_handler;
     std::vector<cutefish::base::Subscription> m_subscriptions;
     NavigationItem* m_hotspot;
+    NavigationItem* m_wifi;
+    NavigationItem* m_ethernet;
 };
 
 } // namespace

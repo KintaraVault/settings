@@ -7,6 +7,7 @@
 #include "pages/mouse/mouse.h"
 #include "ui/slider.h"
 #include "widgets/card.h"
+#include "widgets/inputpreview.h"
 #include "widgets/listrow.h"
 #include "widgets/sliderrow.h"
 #include "window/page.h"
@@ -42,21 +43,23 @@ public:
     explicit MousePage(SettingsWindow& window)
         : Page(window, tr("Mouse"))
     {
+        content()->addChild<InputPreview>(InputPreview::Device::Mouse);
         m_card = content()->addChild<Card>(Card::Style::List);
         m_card->setName("mouse:card");
-        m_leftHanded = m_card->addChild<SwitchRow>(tr("Left hand"));
-        m_leftHanded->setName("mouse:leftHanded");
-        m_leftHanded->onToggled = [this](bool checked) { m_mouse.setLeftHanded(checked); };
-        m_naturalScroll = m_card->addChild<SwitchRow>(tr("Natural scrolling"));
-        m_naturalScroll->onToggled = [this](bool checked) { m_mouse.setNaturalScroll(checked); };
-        m_acceleration = m_card->addChild<SwitchRow>(tr("Mouse acceleration"));
-        m_acceleration->onToggled = [this](bool checked) { m_mouse.setAcceleration(checked); };
-        m_speed = m_card->addChild<SliderRow>(tr("Pointer speed"));
+        m_speed = m_card->addChild<SliderRow>(tr("Tracking speed"));
         m_speed->setName("mouse:speed");
+        m_speed->setCaptions(tr("Slow"), tr("Fast"));
         m_speed->setRange(0, kSteps);
         m_speed->setStepSize(1);
         m_speed->slider()->setSnapMode(Slider::SnapMode::SnapAlways);
         m_speed->onMoved = [this](double value) { m_mouse.setPointerAcceleration(speedForStep(int(std::round(value)))); };
+        m_naturalScroll = m_card->addChild<SwitchRow>(tr("Natural scrolling"));
+        m_naturalScroll->onToggled = [this](bool checked) { m_mouse.setNaturalScroll(checked); };
+        m_leftHanded = m_card->addChild<SwitchRow>(tr("Left hand"));
+        m_leftHanded->setName("mouse:leftHanded");
+        m_leftHanded->onToggled = [this](bool checked) { m_mouse.setLeftHanded(checked); };
+        m_acceleration = m_card->addChild<SwitchRow>(tr("Mouse acceleration"));
+        m_acceleration->onToggled = [this](bool checked) { m_mouse.setAcceleration(checked); };
 
         m_changed = m_mouse.changed().connect([this] { update(); });
         update();

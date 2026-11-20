@@ -45,7 +45,7 @@ private:
 class SliderRow : public ListRow
 {
 public:
-    explicit SliderRow(std::string text = {});
+    explicit SliderRow(std::string text = {}, bool stacked = false);
     ~SliderRow() override;
 
     void setRange(double from, double to);
@@ -70,6 +70,8 @@ public:
     cutefish::ui::Slider* slider() const;
     // The handle is held.
     bool isPressed() const;
+    cutefish::ui::SizeF sizeHint() const override;
+    double heightForWidth(double width) const override;
 
     std::function<void(double value)> onMoved;
     std::function<void()> onPressedChanged;
@@ -79,6 +81,7 @@ protected:
 
 private:
     SliderControls* m_controls;
+    bool m_stacked;
     std::unique_ptr<cutefish::base::Timer> m_settle;
     bool m_settling = false;
     double m_value = 0;

@@ -8,7 +8,13 @@
 TEST(NotificationsPage, ShowsTheEmptyCardWithoutApplications)
 {
     PageFixture page("notifications");
-    EXPECT_EQ(page.count("settings::SwitchRow"), 1);
+    EXPECT_EQ(page.count("settings::SwitchRow"), 0);
     EXPECT_EQ(page.count("settings::RowComboBox"), 0);
     EXPECT_EQ(page.count("settings::Footnote"), 0);
+}
+
+TEST(FocusPage, ShowsDoNotDisturb)
+{
+    PageFixture page("focus");
+    EXPECT_EQ(page.count("settings::SwitchRow"), 1);
 }

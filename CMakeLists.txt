@@ -36,11 +36,14 @@ endforeach()
 # registration, which a linker would drop from an archive.
 add_library(settings-ui OBJECT
     src/widgets/card.cpp
+    src/widgets/paneintro.cpp
     src/widgets/colors.cpp
+    src/widgets/desktopwallpaper.cpp
     src/widgets/emptylistoverlay.cpp
     src/widgets/formdialog.cpp
     src/widgets/iconbutton.cpp
     src/widgets/imageselectionitem.cpp
+    src/widgets/inputpreview.cpp
     src/widgets/listrow.cpp
     src/widgets/metrics.cpp
     src/widgets/picture.cpp
@@ -61,6 +64,8 @@ add_library(settings-ui OBJECT
 target_include_directories(settings-ui PUBLIC src)
 target_compile_definitions(settings-ui PUBLIC SETTINGS_DATA_DIR="${SETTINGS_DATA_DIR}")
 target_link_libraries(settings-ui PUBLIC Cutefish::Toolkit)
+find_package(CutefishClients REQUIRED COMPONENTS appearance)
+target_link_libraries(settings-ui PUBLIC Cutefish::AppearanceClient)
 
 # A page's own dependencies: src/pages/<page>/page.cmake finds and links
 # them to settings-ui.

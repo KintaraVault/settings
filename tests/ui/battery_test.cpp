@@ -149,15 +149,15 @@ TEST_F(BatteryPageTest, TheRangePickerEndsWithTheCard)
     const RectF range = windowRect(window(), "battery:range");
     const RectF card = windowRect(window(), "battery:graphcard");
     // Compact, to sit in the title row.
-    EXPECT_EQ(range.height, 32);
+    EXPECT_EQ(range.height, 28);
     EXPECT_EQ(range.x + range.width, card.x + card.width);
     // Below the title row with the section's label spacing.
-    EXPECT_EQ(card.y, range.y + range.height + 8);
+    EXPECT_NEAR(card.y, range.y + range.height + 9, 0.5);
     // 240 for the graph and the card's padding.
-    EXPECT_EQ(card.height, 240 + 2 * 12);
+    EXPECT_EQ(card.height, 240 + 2 * 10);
     const RectF graph = windowRect(window(), "battery:graph");
-    EXPECT_EQ(graph.x, card.x + 16);
-    EXPECT_EQ(graph.width, card.width - 32);
+    EXPECT_EQ(graph.x, card.x + 10);
+    EXPECT_EQ(graph.width, card.width - 20);
     EXPECT_EQ(graph.height, 240);
 }
 
@@ -166,7 +166,7 @@ TEST_F(BatteryPageTest, TheTitleCentresOnThePicker)
     View* page = settingsWindow->currentPage();
     const RectF range = findView(page, "battery:range")->geometry();
     const RectF title = findView(page, "battery:historytitle")->geometry();
-    // Centred on the 32 high picker, rounded to a whole pixel. The height is
+    // Centred on the compact picker, rounded to a whole pixel. The height is
     // the UI font's line height.
     EXPECT_GT(title.height, 0);
     EXPECT_EQ(title.y, std::round((range.height - title.height) / 2));

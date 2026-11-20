@@ -133,7 +133,7 @@ TEST_F(MouseTest, FollowsTheServiceThroughChangesAndRestarts)
     ASSERT_TRUE(waitFor([&] { return first.acceleration(); }));
 }
 
-TEST_F(MouseTest, PageLaysOutAsTheQtVersionAndSetsTheService)
+TEST_F(MouseTest, PreviewPrecedesTheTrackingCardAndSettingsReachTheService)
 {
     {
         std::lock_guard guard(fake.mutex);
@@ -148,13 +148,13 @@ TEST_F(MouseTest, PageLaysOutAsTheQtVersionAndSetsTheService)
     settingsWindow.switchToPage("mouse");
     window.grab();
 
-    // The list card under the header, three switch rows and a slider row.
+    // The list card under the preview, three switch rows and a captioned slider.
     const RectF card = settings::testing::windowRect(window, "mouse:card");
-    EXPECT_EQ(card.x, 254);
-    EXPECT_EQ(card.y, 52);
-    EXPECT_EQ(card.width, 622);
-    EXPECT_EQ(card.height, 3 * 44 + 52);
-    EXPECT_EQ(settings::testing::windowRect(window, "mouse:speed").height, 52);
+    EXPECT_EQ(card.x, 252);
+    EXPECT_EQ(card.y, 218);
+    EXPECT_EQ(card.width, 628);
+    EXPECT_EQ(card.height, 3 * 38 + 56);
+    EXPECT_EQ(settings::testing::windowRect(window, "mouse:speed").height, 56);
     // Speed 0.6 is the seventh of the ten curves after the default.
     auto* speed = settings::testing::findView<SliderRow>(window.contentView(), "mouse:speed");
     ASSERT_NE(speed, nullptr);

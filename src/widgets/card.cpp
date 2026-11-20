@@ -3,8 +3,9 @@
 
 #include "widgets/card.h"
 
+#include "ui/color_provider.h"
 #include "ui/painter.h"
-#include "ui/theme.h"
+#include "widgets/colors.h"
 #include "widgets/metrics.h"
 
 using namespace cutefish::ui;
@@ -25,8 +26,7 @@ Card::Card(Style style)
 
 void Card::paint(Painter& painter)
 {
-    const Theme& theme = Theme::current();
-    painter.drawRoundedRect(localRect(), {theme.bigRadius, 0, themeCorners()}, theme.secondBackground);
+    painter.drawRoundedRect(localRect(), {metrics::cardRadius, 0, themeCorners()}, color(SettingsColor::CardBackground));
 }
 
 

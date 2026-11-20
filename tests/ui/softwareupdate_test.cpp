@@ -173,7 +173,7 @@ struct SoftwareUpdatePageTest : testing::Test
     bool openPage()
     {
         openWindow();
-        if (!waitFor([&] { return inSidebar(); }))
+        if (!waitFor([&] { return settingsWindow->isPageAvailable("softwareupdate"); }))
             return false;
         settingsWindow->switchToPage("softwareupdate");
         window().grab();

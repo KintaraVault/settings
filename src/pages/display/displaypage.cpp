@@ -18,6 +18,7 @@
 #include "pages/display/brightness.h"
 #include "ui/dialog_window.h"
 #include "ui/label.h"
+#include "ui/painter.h"
 #include "ui/cell_layout.h"
 #include "ui/segmented_control.h"
 #include "ui/slider.h"
@@ -25,6 +26,7 @@
 #include "ui/text_field.h"
 #include "ui/theme.h"
 #include "widgets/card.h"
+#include "widgets/desktopwallpaper.h"
 #include "widgets/listrow.h"
 #include "widgets/metrics.h"
 #include "widgets/rowcombobox.h"
@@ -65,6 +67,30 @@ static std::string recommended(const std::string& item)
 }
 
 namespace {
+
+class DisplayPreview : public View
+{
+public:
+    DisplayPreview()
+        : m_screen(addChild<DesktopWallpaper>())
+    {
+        m_screen->setPreviewRadius(3);
+    }
+
+protected:
+    void layout() override { m_screen->setGeometry({20, 7, 88, 57}); }
+    void paint(Painter& painter) override
+    {
+        const bool dark = Theme::current().darkMode;
+        const Color metal = Color::rgb(dark ? 0x787b80 : 0x90939a);
+        painter.drawSmoothRectangle({58, 66, 12, 11}, 2, metal);
+        painter.drawSmoothRectangle({47, 76, 34, 3}, 1.5, metal);
+        painter.drawSmoothRectangle({16, 3, 96, 65}, 6, Color::rgb(0x202125));
+    }
+
+private:
+    DesktopWallpaper* m_screen;
+};
 
 // A label in the theme's secondary text colour.
 class SecondaryLabel : public Label
@@ -167,14 +193,21 @@ class DisplayPage : public Page
 {
 public:
     explicit DisplayPage(SettingsWindow& window)
-        : Page(window, tr("Display"))
+        : Page(window, tr("Displays"))
     {
         m_screens = content()->addChild<ColumnLayout>();
         m_screens->setSpacing(metrics::sectionLabelSpacing);
         m_screens->setLayoutHints({.fillWidth = true});
+        auto* hero = m_screens->addChild<Card>();
+        hero->setPadding({8, 20, 8, 12});
+        hero->setSpacing(5);
+        auto* display = hero->addChild<DisplayPreview>();
+        display->setLayoutHints({.preferredWidth = 128, .preferredHeight = 82,
+                                 .horizontalAlignment = Alignment::Center});
         // A single screen is named; several are picked between here.
-        m_screenName = m_screens->addChild<SectionLabel>();
+        m_screenName = hero->addChild<SectionLabel>();
         m_screenName->setName("display:name");
+        m_screenName->setLayoutHints({.horizontalAlignment = Alignment::Center});
         m_screenTabs = m_screens->addChild<SegmentedControl>();
         m_screenTabs->setName("display:tabs");
         m_screenTabs->setLayoutHints({.fillWidth = true});

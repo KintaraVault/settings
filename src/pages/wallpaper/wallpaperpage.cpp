@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "base/i18n.h"
+#include "base/url.h"
 #include "cutefish/appearance/appearance.h"
 #include "pages/wallpaper/wallpapergrid.h"
 #include "pages/wallpaper/wallpapers.h"
@@ -15,7 +17,10 @@
 #include "ui/menu.h"
 #include "ui/cell_layout.h"
 #include "widgets/card.h"
+#include "widgets/desktopwallpaper.h"
 #include "widgets/metrics.h"
+#include "widgets/sections.h"
+#include "widgets/standardbutton.h"
 #include "window/page.h"
 #include "window/pagelist.h"
 #include "window/settingswindow.h"
@@ -36,10 +41,31 @@ public:
     explicit WallpaperPage(SettingsWindow& window)
         : Page(window, tr("Wallpaper"))
     {
-        Card* card = content()->addChild<Card>();
-        card->setSpacing(metrics::sectionSpacing);
+        auto* current = content()->addChild<RowLayout>();
+        current->setLayoutHints({.fillWidth = true});
+        current->setSpacing(10);
+        auto* sample = current->addChild<DesktopWallpaper>();
+        sample->setPreviewRadius(8);
+        sample->setLayoutHints({.preferredWidth = 160, .preferredHeight = 100, .minimumWidth = 100});
+        auto* details = current->addChild<Card>();
+        details->setLayoutHints({.fillWidth = true, .fillHeight = true, .minimumWidth = 168});
+        details->setSpacing(7);
+        m_current = details->addChild<Label>();
+        m_current->setElide(Label::Elide::Right);
+        m_current->setWeight(600);
+        m_current->setLayoutHints({.fillWidth = true});
+        auto* add = details->addChild<StandardButton>(tr("Add Wallpaper…"));
+        add->onClicked = [this, add] {
+            m_addMenu.popup(&settingsWindow().window(), add->mapToWindow({0, add->geometry().height}));
+        };
 
-        m_user = card->addChild<WallpaperGrid>(tr("Your wallpapers"));
+        m_system = content()->addChild<WallpaperGrid>(trc("wallpaper section", "System"));
+        m_system->setName("wallpaper:system");
+        m_system->setLayoutHints({.fillWidth = true});
+        m_system->setWallpapers(wallpapers::system());
+        m_system->onSelected = [this](const std::string& path) { select(path); };
+
+        m_user = content()->addChild<WallpaperGrid>(tr("Your wallpapers"));
         m_user->setName("wallpaper:user");
         m_user->setLayoutHints({.fillWidth = true});
         m_user->setShowAddWallpaper(true);
@@ -48,20 +74,11 @@ public:
         m_user->onAddRequested = [this](PointF position) { m_addMenu.popup(&settingsWindow().window(), position); };
         m_user->onRemoveRequested = [this](const std::string& path) { m_appearance.removeUserWallpaper(path); };
 
-        m_system = card->addChild<WallpaperGrid>(trc("wallpaper section", "System"));
-        m_system->setName("wallpaper:system");
-        m_system->setLayoutHints({.fillWidth = true});
-        m_system->setWallpapers(wallpapers::system());
-        m_system->onSelected = [this](const std::string& path) { select(path); };
-
-        m_folderColumn = card->addChild<ColumnLayout>();
+        m_folderColumn = content()->addChild<ColumnLayout>();
         m_folderColumn->setSpacing(metrics::sectionSpacing);
         m_folderColumn->setLayoutHints({.fillWidth = true});
 
-        ColumnLayout* colors = card->addChild<ColumnLayout>();
-        colors->setSpacing(metrics::cardSpacing);
-        colors->setLayoutHints({.fillWidth = true});
-        colors->addChild<Label>(tr("Colors"));
+        auto* colors = content()->addChild<Section>(tr("Colors"));
         m_swatches = colors->addChild<ColorSwatches>();
         m_swatches->setName("wallpaper:colors");
         m_swatches->setLayoutHints({.fillWidth = true});
@@ -148,6 +165,9 @@ private:
 
         const bool imageSelected = m_appearance.backgroundType() == 0;
         const std::string current = m_appearance.wallpaper();
+        const auto wallpaper = base::url::toLocalFile(current).value_or(current);
+        m_current->setText(imageSelected && !wallpaper.empty()
+            ? std::filesystem::path(wallpaper).stem().string() : imageSelected ? tr("Wallpaper") : tr("Solid Color"));
         m_user->setCurrent(current, imageSelected);
         m_system->setCurrent(current, imageSelected);
         for (WallpaperGrid* grid : m_folderGrids)
@@ -159,6 +179,7 @@ private:
     base::Subscription m_changed;
     base::Subscription m_folderImagesChanged;
     WallpaperGrid* m_user;
+    Label* m_current;
     WallpaperGrid* m_system;
     ColumnLayout* m_folderColumn;
     std::vector<std::string> m_folders;

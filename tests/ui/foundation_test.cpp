@@ -70,18 +70,30 @@ struct Fixture : testing::Test
 TEST_F(Fixture, SidebarLinesUpWithTheMetrics)
 {
     const RectF search = windowRect(window(), "search");
-    EXPECT_EQ(search.x, 12);
-    EXPECT_EQ(search.y, 48);
-    EXPECT_EQ(search.width, 206);
+    EXPECT_EQ(search.x, 10);
+    EXPECT_NEAR(search.y, 61, 0.5);
+    EXPECT_EQ(search.width, 212);
     EXPECT_EQ(search.height, 28);
-    // Wi-Fi opens first; its entry is 34 high and inset by the sidebar margin.
+    // Wi-Fi opens first, inset by the sidebar margin.
     const RectF wifi = windowRect(window(), "sidebar:wlan");
-    EXPECT_EQ(wifi.x, 12);
-    EXPECT_EQ(wifi.width, 206);
-    EXPECT_EQ(wifi.height, 34);
+    EXPECT_EQ(wifi.x, 10);
+    EXPECT_EQ(wifi.width, 212);
+    EXPECT_EQ(wifi.height, 32);
     const RectF page = windowRect(window(), "page:wlan");
-    EXPECT_EQ(page.x, 230);
-    EXPECT_EQ(page.width, 670);
+    EXPECT_EQ(page.x, 232);
+    EXPECT_EQ(page.width, 668);
+}
+
+TEST_F(Fixture, NavigationLeavesAnEvenGapToTheTitle)
+{
+    settingsWindow->switchToPage("appearance");
+    window().grab();
+    const RectF back = windowRect(window(), "back");
+    const RectF forward = windowRect(window(), "forward");
+    const RectF title = windowRect(window(), "title");
+    EXPECT_EQ(back.x, 240);
+    EXPECT_NEAR(back.width, forward.width, 1.0);
+    EXPECT_NEAR(title.x - forward.right(), 12, 1.0);
 }
 
 TEST_F(Fixture, HistoryGoesBackAndForward)
@@ -185,7 +197,7 @@ TEST(ListRow, KeepsTheRowHeights)
     window.setContentView(std::move(page));
     window.show();
     window.grab();
-    EXPECT_EQ(windowRect(window, "plain").height, 44);
+    EXPECT_EQ(windowRect(window, "plain").height, 38);
     EXPECT_TRUE(isHidden(window, "empty"));
-    EXPECT_EQ(windowRect(window, "info").y, 44);
+    EXPECT_EQ(windowRect(window, "info").y, 38);
 }
