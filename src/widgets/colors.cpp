@@ -16,8 +16,8 @@ void addSettingsColors(ColorMixer& mixer, const Theme& theme)
 {
     const bool dark = theme.darkMode;
 
-    mixer[SettingsColor::PageBackground] = Color::rgb(dark ? 0x212121 : 0xffffff);
-    mixer[SettingsColor::CardBackground] = Color::rgb(dark ? 0x2a2a2a : 0xf7f7f7);
+    mixer[SettingsColor::PageBackground] = wallpaperTinted(Color::rgb(dark ? 0x212121 : 0xffffff));
+    mixer[SettingsColor::CardBackground] = wallpaperTinted(Color::rgb(dark ? 0x2a2a2a : 0xf7f7f7));
     mixer[SettingsColor::CardSeparator] = withAlpha(ColorId::Text, dark ? 0.09 : 0.07);
     mixer[SettingsColor::SidebarBackground] =
         withAlpha(wallpaperTinted(Color::rgb(dark ? 0x282829 : 0xececeb)), dark ? 0.83 : 0.87);

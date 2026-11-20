@@ -15,6 +15,39 @@
 using namespace cutefish::ui;
 using settings::testing::findView;
 
+TEST(AppearancePage, WallpaperTintsTheOpaquePageAndCards)
+{
+    struct Restore {
+        Theme theme = Theme::current();
+        ~Restore() { Theme::setCurrent(theme); }
+    } restore;
+    PageFixture page("appearance");
+    auto& window = page.window->window();
+    for (const Theme theme : {Theme::light(), Theme::dark()}) {
+        Theme::setCurrent(theme);
+        const Color pageBase = Color::rgb(theme.darkMode ? 0x212121 : 0xffffff);
+        const Color cardBase = Color::rgb(theme.darkMode ? 0x2a2a2a : 0xf7f7f7);
+        for (const WallpaperTint tint : {WallpaperTint::fromSample(217, 63, 47),
+                                         WallpaperTint::fromSample(39, 91, 218), WallpaperTint{}}) {
+            window.setWallpaperTint(tint);
+            const auto image = window.grab();
+            const uint32_t tone = tint.forMode(theme.darkMode);
+            const Color body = WallpaperTint::apply(pageBase, tone);
+            const Color card = WallpaperTint::apply(cardBase, tone);
+            int bodyPixels = 0, cardPixels = 0;
+            for (int y = 120; y < image.height() - 30; y += 4) {
+                for (int x = image.width() / 2; x < image.width() - 30; x += 4) {
+                    const Color pixel = image.pixel(x, y);
+                    bodyPixels += pixel == body;
+                    cardPixels += pixel == card;
+                }
+            }
+            EXPECT_GT(bodyPixels, 300);
+            EXPECT_GT(cardPixels, 300);
+        }
+    }
+}
+
 TEST(AppearancePage, MaterialAndIconControlsAcceptInput)
 {
     PageFixture page("appearance");
