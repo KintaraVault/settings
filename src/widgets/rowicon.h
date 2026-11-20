@@ -13,8 +13,6 @@ class Icon;
 
 namespace settings {
 
-class Picture;
-
 // The sidebar's tile: a coloured rounded square with a white glyph, for the
 // sidebar and a list row's leading slot. The glyph is one of settings'
 // sidebar pictures, or a toolkit glyph when the name has no ".svg".
@@ -33,7 +31,6 @@ protected:
 
 private:
     cutefish::ui::Color m_tint;
-    Picture* m_picture;
     cutefish::ui::Icon* m_glyph;
 };
 
