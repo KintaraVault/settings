@@ -5,6 +5,8 @@
 
 #include <string_view>
 
+#include "ui/design_metrics.h"
+
 // Spacing tokens for every page, on a 4 px grid. Pages use the semantic
 // names; retune the look here rather than at the use sites.
 namespace settings::metrics {
@@ -65,13 +67,13 @@ inline constexpr double formRowSpacing = l;
 inline constexpr double sidebarWidth = 232;
 inline constexpr double sidebarMinimumWidth = 180;
 inline constexpr double sidebarMargin = 10;
-inline constexpr double sidebarItemHeight = 32;
+inline constexpr double sidebarItemHeight = cutefish::ui::design::sidebarRowHeight;
 inline constexpr double sidebarItemPadding = 9;
 inline constexpr double sidebarItemSpacing = 0;
 inline constexpr double sidebarCategorySpacing = 12;
 
 // Dialogs.
-inline constexpr double dialogPadding = l;
+inline constexpr double dialogPadding = cutefish::ui::design::dialogInset;
 inline constexpr double dialogSpacing = l;
 inline constexpr double dialogButtonSpacing = s;
 inline constexpr double dialogWindowButtonsMargin = 0;

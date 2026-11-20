@@ -85,7 +85,7 @@ protected:
     {
         const Theme& theme = Theme::current();
         if (m_current || m_pressed)
-            painter.drawRoundedRect(localRect(), {8, 0, themeCorners()},
+            painter.drawRoundedRect(localRect(), {design::menuItemRadius, 0, themeCorners()},
                 m_current && windowActive(this) ? color(SettingsColor::SidebarItemCurrent)
                     : theme.text.withAlpha(m_pressed ? 0.15 : 0.10));
     }
