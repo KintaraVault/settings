@@ -2772,9 +2772,6 @@ msgstr "Тема"
 msgid "Liquid Glass"
 msgstr "Liquid Glass"
 
-msgid "Desktop Wallpaper"
-msgstr "Обои рабочего стола"
-
 msgid "Color"
 msgstr "Цвет"
 

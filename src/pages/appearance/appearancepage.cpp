@@ -248,20 +248,6 @@ private:
     View* m_desktop;
 };
 
-class GlassCaption : public Label
-{
-public:
-    using Label::Label;
-
-protected:
-    void paint(Painter& painter) override
-    {
-        const RectF box = localRect();
-        painter.fillRoundedRect(box.adjusted(-7, 2, 7, -2), 7, Color::rgb(0x000000).withAlpha(0.54));
-        Label::paint(painter);
-    }
-};
-
 class GlassSearch : public SearchField
 {
 public:
@@ -295,9 +281,6 @@ public:
         m_search->setIconMetrics(9, 4, 5);
         m_search->setGlyphColor(ColorId::Text);
         m_search->setPlaceholderColor(ColorId::Text);
-        m_caption = addChild<GlassCaption>(tr("Desktop Wallpaper"));
-        m_caption->setWeight(650);
-        m_caption->setFontSize(15);
         m_slider = addChild<Slider>();
         m_slider->setName("appearance:glass");
         m_slider->setRange(0, 1);
@@ -323,8 +306,6 @@ protected:
         m_stack->setGeometry({x + 2 * gap + 2 * bar - 1, gap - 1, bar + 2, bar + 2});
         const double searchStart = 3 * gap + 3 * bar;
         m_search->setGeometry({x + searchStart, gap, std::max(0.0, width - searchStart - gap), bar});
-        m_caption->setColor(Color::rgb(0xffffff));
-        m_caption->setGeometry({x + 16, height * 0.80, std::min(width - 28, m_caption->sizeHint().width), height * 0.19});
         m_slider->setGeometry({x + 17, height + 2, width - 34, 24});
     }
 
@@ -349,7 +330,6 @@ private:
     HeaderButtonGroup* m_actions;
     HeaderButton* m_stack;
     SearchField* m_search;
-    Label* m_caption;
     Slider* m_slider;
 };
 
