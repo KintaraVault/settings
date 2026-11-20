@@ -65,20 +65,11 @@ public:
             auto* item = grid->addChild<ImageSelectionItem>(std::make_unique<IconThemePreview>(theme.previewFiles),
                                                             theme.name, SizeF{104, 64}, 0);
             item->setName("icontheme:theme");
-            const std::string id = theme.id;
-            // The choice shows at once and the service catches up, as the Qt
-            // version's model did.
-            item->onClicked = [this, id] {
-                if (id == currentTheme())
-                    return;
-                m_chosen = id;
-                updateChecks(id);
-                m_appearance.setIconTheme(id);
-            };
+            item->setEnabled(false);
             m_items.push_back(item);
         }
-        m_subscription = m_appearance.changed.connect([this] { update(); });
-        update();
+        m_subscription = m_appearance.changed.connect([this] { updateChecks(); });
+        updateChecks();
     }
 
 private:
@@ -88,15 +79,9 @@ private:
         return theme.empty() ? "Cutefish" : theme;
     }
 
-    void update()
+    void updateChecks()
     {
-        if (m_appearance.iconTheme() == m_chosen)
-            m_chosen.clear();
-        updateChecks(m_chosen.empty() ? currentTheme() : m_chosen);
-    }
-
-    void updateChecks(const std::string& current)
-    {
+        const std::string current = currentTheme();
         for (size_t i = 0; i < m_items.size(); ++i)
             m_items[i]->setChecked(m_themes[i].id == current);
     }
@@ -105,8 +90,6 @@ private:
     cutefish::base::Subscription m_subscription;
     std::vector<IconTheme> m_themes;
     std::vector<ImageSelectionItem*> m_items;
-    // Picked here and not yet reported back by the service.
-    std::string m_chosen;
 };
 
 } // namespace

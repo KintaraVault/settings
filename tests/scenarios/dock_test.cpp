@@ -8,6 +8,7 @@
 #include <string>
 
 #include "scenario.h"
+#include "ui/slider.h"
 #include "widgets/sliderrow.h"
 
 using namespace cutefish::ui;
@@ -37,7 +38,7 @@ TEST(DockPage, HasEveryControl)
 {
     Scenario scenario("dock");
     TestDriver& driver = scenario.driver;
-    EXPECT_EQ(driver.countShown("dock:position"), 3u);
+    EXPECT_TRUE(driver.shows("dock:position"));
     for (const char* slider : {"dock:size", "dock:magnification", "dock:glass"})
         EXPECT_TRUE(driver.shows(slider)) << slider;
     EXPECT_TRUE(driver.shows("dock:displayMode"));
@@ -67,8 +68,14 @@ TEST(DockPage, SizeStaysWhereItIsDragged)
     expectDragHolds(scenario.driver, "dock:size", 0.8);
 }
 
-TEST(DockPage, GlassEffectStaysWhereItIsDragged)
+TEST(DockPage, GlassEffectRemainsVisibleButReadOnly)
 {
     Scenario scenario("dock");
-    expectDragHolds(scenario.driver, "dock:glass", 0.3);
+    auto* row = scenario.driver.find<SliderRow>("dock:glass");
+    ASSERT_TRUE(row);
+    EXPECT_TRUE(row->slider()->isVisible());
+    EXPECT_FALSE(row->slider()->isEnabled());
+    const double value = row->value();
+    scenario.driver.dragSlider("dock:glass", 0.2, 0.8);
+    EXPECT_EQ(row->value(), value);
 }

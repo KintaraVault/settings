@@ -45,7 +45,7 @@ struct MouseTest : ::testing::Test
 
 } // namespace
 
-TEST_F(MouseTest, PageLaysOutAsTheQtVersion)
+TEST_F(MouseTest, PreviewPrecedesTheTrackingCard)
 {
     {
         std::lock_guard guard(fake.mutex);
@@ -60,11 +60,11 @@ TEST_F(MouseTest, PageLaysOutAsTheQtVersion)
     settingsWindow.switchToPage("mouse");
     window.grab();
 
-    // The list card under the header, three switch rows and a slider row.
+    // The list card under the preview, three switch rows and a captioned slider.
     const RectF card = windowRect(window, "mouse:card");
-    EXPECT_EQ(card.x, 254);
-    EXPECT_EQ(card.y, 52);
-    EXPECT_EQ(card.width, 622);
-    EXPECT_EQ(card.height, 3 * 44 + 52);
-    EXPECT_EQ(windowRect(window, "mouse:speed").height, 52);
+    EXPECT_EQ(card.x, 252);
+    EXPECT_EQ(card.y, 218);
+    EXPECT_EQ(card.width, 628);
+    EXPECT_EQ(card.height, 3 * 38 + 56);
+    EXPECT_EQ(windowRect(window, "mouse:speed").height, 56);
 }

@@ -128,8 +128,7 @@ struct SoftwareUpdatePageTest : ::testing::Test
     }
     bool inSidebar()
     {
-        window().grab();
-        return window().layoutDump().find("\"sidebar:softwareupdate\"") != std::string::npos;
+        return settingsWindow->isPageAvailable("softwareupdate");
     }
     // Lets the change reach the page, and lays it out again.
     bool shows(const std::string& title)

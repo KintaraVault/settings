@@ -74,10 +74,10 @@ TEST(Accounts, ARowIsThePictureAndNamesWithAnInfoButton)
     const RectF row = fixture.row->geometry();
     const PointF rowOrigin = fixture.row->mapToWindow({0, 0});
     const PointF pictureOrigin = fixture.avatar()->mapToWindow({0, 0});
-    EXPECT_EQ(row.height, 48 + 2 * 16);
-    EXPECT_EQ(pictureOrigin.x - rowOrigin.x, 16);
-    EXPECT_EQ(pictureOrigin.y - rowOrigin.y, 16);
-    EXPECT_EQ(rowOrigin.y + row.height - (pictureOrigin.y + 48), 16);
+    EXPECT_EQ(row.height, 48 + 2 * 10);
+    EXPECT_EQ(pictureOrigin.x - rowOrigin.x, 10);
+    EXPECT_EQ(pictureOrigin.y - rowOrigin.y, 10);
+    EXPECT_EQ(rowOrigin.y + row.height - (pictureOrigin.y + 48), 10);
     IconButton* info = find<IconButton>(fixture.row);
     ASSERT_TRUE(info);
     // At the end of the row, centred on it as the picture is.

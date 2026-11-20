@@ -45,6 +45,7 @@ public:
     // The whole window's height; lets the content's filling items share the
     // space.
     void setFixedHeight(double height);
+    void setCloseVisible(bool visible);
 
     void show();
     // Asks canClose first, as the close control and Escape do.

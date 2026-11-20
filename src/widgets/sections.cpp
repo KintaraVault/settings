@@ -15,8 +15,8 @@ SectionLabel::SectionLabel(std::string text)
     setMargins({metrics::cardHorizontalPadding, 0, metrics::cardHorizontalPadding, 0});
     setLayoutHints({.fillWidth = true});
     m_label = addChild<Label>(std::move(text));
-    m_label->setWeight(500);
-    m_label->setColor(withAlpha(ColorId::Text, 0.85));
+    m_label->setWeight(600);
+    m_label->setColor(ColorId::Text);
     m_label->setLayoutHints({.fillWidth = true});
 }
 
@@ -24,6 +24,7 @@ Footnote::Footnote(std::string text)
     : SectionLabel(std::move(text))
 {
     label()->setWrap(true);
+    label()->setFontSize(12);
     label()->setWeight(400);
     label()->setColor(ColorId::DisabledText);
 }

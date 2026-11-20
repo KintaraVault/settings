@@ -6,16 +6,14 @@
 #include <vector>
 
 #include "base/i18n.h"
-#include "cutefish/appearance/appearance.h"
 #include "pages/dock/docksettings.h"
 #include "ui/layout.h"
 #include "ui/cell_layout.h"
 #include "ui/segmented_control.h"
 #include "widgets/card.h"
-#include "widgets/imageselectionitem.h"
 #include "widgets/listrow.h"
 #include "widgets/metrics.h"
-#include "widgets/picture.h"
+#include "widgets/rowcombobox.h"
 #include "widgets/sections.h"
 #include "widgets/sliderrow.h"
 #include "window/page.h"
@@ -23,7 +21,6 @@
 #include "window/settingswindow.h"
 
 using namespace cutefish::ui;
-using cutefish::appearance::Appearance;
 using cutefish::i18n::tr;
 
 namespace settings {
@@ -31,7 +28,7 @@ namespace settings {
 namespace {
 
 // Rows below the sliders, near their height so the card keeps one rhythm.
-constexpr double kTallRowHeight = 64;
+constexpr double kTallRowHeight = 40;
 // The least room beside the label inside each button of a segmented row.
 constexpr double kSegmentPadding = 8;
 
@@ -59,8 +56,7 @@ public:
     {
         setInteractive(false);
         setMinimumRowHeight(kTallRowHeight);
-        m_control = addChild<SegmentedControl>(std::move(items));
-        m_control->setContentHeight(32);
+        m_control = addChild<SegmentedControl>(std::move(items), SegmentedControl::Style::Accent);
     }
 
     SegmentedControl* control() const { return m_control; }
@@ -123,28 +119,14 @@ class DockPage : public Page
 {
 public:
     explicit DockPage(SettingsWindow& window)
-        : Page(window, tr("Dock & Desktop"))
+        : Page(window, tr("Desktop & Dock"))
     {
-        Section* position = content()->addChild<Section>(tr("Dock"));
-        Card* positions = position->addChild<Card>();
-        RowLayout* tiles = positions->addChild<RowLayout>();
-        tiles->setSpacing(metrics::tileSpacing);
-        const char* const names[] = {tr("Left"), tr("Bottom"), tr("Right")};
-        const char* const pictures[] = {"images/dock_left.svg", "images/dock_bottom.svg", "images/dock_right.svg"};
-        for (int i = 0; i < 3; ++i) {
-            ImageSelectionItem* tile = tiles->addChild<ImageSelectionItem>(dataPath(pictures[i]), names[i],
-                                                                           SizeF{80, 80});
-            tile->setName("dock:position");
-            tile->onClicked = [this, i] {
-                m_settings.setDirection(i);
-                updateDirection();
-            };
-            m_directions.push_back(tile);
-        }
-        updateDirection();
-
-        Card* sliders = content()->addChild<Card>(Card::Style::List);
-        SliderRow* size = sliders->addChild<SliderRow>(tr("Size"));
+        Section* dock = content()->addChild<Section>(tr("Dock"));
+        Card* sliders = dock->addChild<Card>(Card::Style::List);
+        RowLayout* sizing = sliders->addChild<RowLayout>();
+        sizing->setLayoutHints({.fillWidth = true, .margins = {0, 6, 0, 8}});
+        SliderRow* size = sizing->addChild<SliderRow>(tr("Size"), true);
+        size->setLayoutHints({.fillWidth = true, .preferredWidth = 140});
         size->setName("dock:size");
         size->setCaptions(tr("Small"), tr("Large"));
         // The value is the icon size itself; the dock derives its paddings
@@ -158,7 +140,8 @@ public:
             m_settings.setIconSize(int(std::round(value)));
             size->setValue(m_settings.iconSize());
         };
-        SliderRow* magnification = sliders->addChild<SliderRow>(tr("Magnification"));
+        SliderRow* magnification = sizing->addChild<SliderRow>(tr("Magnification"), true);
+        magnification->setLayoutHints({.fillWidth = true, .preferredWidth = 140});
         magnification->setName("dock:magnification");
         magnification->setCaptions(tr("Off"), tr("Large"));
         // The size the icon under the pointer grows to.
@@ -170,19 +153,19 @@ public:
             m_settings.setMagnifiedIconSize(position < kMagnificationOn ? 0 : std::max(kSmallestMagnified, position));
             magnification->setValue(magnificationValue(m_settings.magnifiedIconSize()));
         };
-        SliderRow* glass = sliders->addChild<SliderRow>(tr("Glass effect"));
-        glass->setName("dock:glass");
-        glass->setCaptions(tr("More clear"), tr("More tinted"));
-        glass->setRange(0, 1);
-        glass->setValue(m_settings.glassTint());
-        glass->onMoved = [this, glass](double value) {
-            m_settings.setGlassTint(value);
-            glass->setValue(m_settings.glassTint());
-        };
-        // Reduce Transparency gives the dock a grey of its own.
-        m_glass = glass;
-        m_subscription = m_appearance.changed.connect([this] { updateGlass(); });
-        updateGlass();
+        auto* placement = dock->addChild<Card>(Card::Style::List);
+        ListRow* position = placement->addChild<ListRow>(tr("Dock position on screen"));
+        position->setInteractive(false);
+        auto* positionPicker = position->addContent<RowComboBox>(
+            std::vector<std::string>{tr("Left"), tr("Bottom"), tr("Right")});
+        positionPicker->setName("dock:position");
+        positionPicker->setCurrentIndex(m_settings.direction());
+        positionPicker->onActivated = [this](int index) { m_settings.setDirection(index); };
+
+        SwitchRow* area = placement->addChild<SwitchRow>(tr("Minimized windows area"));
+        area->setName("dock:minimizedArea");
+        area->setChecked(m_settings.minimizedArea());
+        area->onToggled = [this](bool checked) { m_settings.setMinimizedArea(checked); };
 
         SegmentedRow* mode = sliders->addChild<SegmentedRow>(
                 tr("Display mode"), std::vector<std::string>{tr("Always show"), tr("Always hide"), tr("Smart hide")});
@@ -191,33 +174,23 @@ public:
         visibility->setCurrentIndex(m_settings.visibility());
         visibility->onCurrentChanged = [this](int index) { m_settings.setVisibility(index); };
 
-        SwitchRow* area = sliders->addChild<SwitchRow>(tr("Minimized windows area"));
-        area->setName("dock:minimizedArea");
-        area->setMinimumRowHeight(kTallRowHeight);
-        area->setChecked(m_settings.minimizedArea());
-        area->onToggled = [this](bool checked) { m_settings.setMinimizedArea(checked); };
-
         Section* desktop = content()->addChild<Section>(tr("Desktop"));
         Card* corners = desktop->addChild<Card>(Card::Style::List);
         NavigationItem* hotCorners = corners->addChild<NavigationItem>(tr("Hot Corners"));
         hotCorners->setName("dock:hotcorners");
         hotCorners->onClicked = [&window] { window.pushPage("hotcorners"); };
+
+        Section* material = content()->addChild<Section>(tr("Dock appearance"));
+        auto* glass = material->addChild<Card>(Card::Style::List)->addChild<SliderRow>(tr("Glass effect"));
+        glass->setName("dock:glass");
+        glass->setCaptions(tr("More clear"), tr("More tinted"));
+        glass->setRange(0, 1);
+        glass->setValue(m_settings.glassTint());
+        glass->setSliderEnabled(false);
     }
 
 private:
-    void updateGlass() { m_glass->setEnabled(!m_appearance.reduceTransparency()); }
-
-    void updateDirection()
-    {
-        for (size_t i = 0; i < m_directions.size(); ++i)
-            m_directions[i]->setChecked(m_settings.direction() == int(i));
-    }
-
     DockSettings m_settings;
-    Appearance m_appearance;
-    cutefish::base::Subscription m_subscription;
-    std::vector<ImageSelectionItem*> m_directions;
-    SliderRow* m_glass;
 };
 
 } // namespace

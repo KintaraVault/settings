@@ -296,6 +296,10 @@ msgid "Accent color"
 msgstr "Акцентный цвет"
 
 #: src/pages/appearance/appearancepage.cpp
+msgid "Allow wallpaper tinting in windows"
+msgstr "Оттенять фон окон цветом обоев"
+
+#: src/pages/appearance/appearancepage.cpp
 msgid "Reduce Transparency"
 msgstr "Уменьшить прозрачность"
 
@@ -2737,3 +2741,201 @@ msgstr "Настройки"
 #: src/window/sidebar.cpp
 msgid "No results"
 msgstr "Нет результатов"
+
+msgid "Accessibility"
+msgstr "Универсальный доступ"
+
+msgid "Desktop & Dock"
+msgstr "Рабочий стол и Dock"
+
+msgid "Displays"
+msgstr "Дисплеи"
+
+msgid "Focus"
+msgstr "Фокусирование"
+
+msgid "Privacy & Security"
+msgstr "Конфиденциальность и безопасность"
+
+msgid "Users & Groups"
+msgstr "Пользователи и группы"
+
+msgid "Trackpad"
+msgstr "Трекпад"
+
+msgid "Printers & Scanners"
+msgstr "Принтеры и сканеры"
+
+msgid "Theme"
+msgstr "Тема"
+
+msgid "Liquid Glass"
+msgstr "Liquid Glass"
+
+msgid "Color"
+msgstr "Цвет"
+
+msgid "Icon & widget style"
+msgstr "Стиль значков и виджетов"
+
+msgid "Folder color"
+msgstr "Цвет папок"
+
+msgid "Clear"
+msgstr "Прозрачный"
+
+msgid "Tinted"
+msgstr "Тонированный"
+
+msgid "Dock position on screen"
+msgstr "Положение Dock на экране"
+
+msgid "Dock appearance"
+msgstr "Оформление Dock"
+
+msgid "Point & Click"
+msgstr "Наведение и нажатие"
+
+msgid "Scrolling"
+msgstr "Прокрутка"
+
+msgid "Tracking speed"
+msgstr "Скорость перемещения"
+
+msgid "Slow"
+msgstr "Медленно"
+
+msgid "Fast"
+msgstr "Быстро"
+
+msgid "Long"
+msgstr "Долгая"
+
+msgid "Short"
+msgstr "Короткая"
+
+msgid "Key repeat rate"
+msgstr "Скорость повтора клавиш"
+
+msgid "Other Services"
+msgstr "Другие службы"
+
+msgid "Vision"
+msgstr "Зрение"
+
+msgid "Physical and Motor"
+msgstr "Моторика"
+
+msgid "Adjust text, displays and input devices to suit the way you work."
+msgstr "Настройте текст, дисплеи и устройства ввода под свои потребности."
+
+msgid "Manage the overall setup of your computer, including software updates, storage, and language."
+msgstr "Управляйте общими параметрами компьютера, включая обновления, хранилище и язык."
+
+msgid "Storage"
+msgstr "Хранилище"
+
+msgid "System Volume"
+msgstr "Системный том"
+
+msgid "Home Volume"
+msgstr "Том домашней папки"
+
+msgid "Total capacity"
+msgstr "Общая ёмкость"
+
+msgid "Available"
+msgstr "Доступно"
+
+msgid "Turn on Wi-Fi and choose a network to connect wirelessly to the internet."
+msgstr "Включите Wi-Fi и выберите сеть для беспроводного подключения к интернету."
+
+msgid "Connect to wireless accessories such as headphones, keyboards, and mice."
+msgstr "Подключайте беспроводные наушники, клавиатуры, мыши и другие устройства."
+
+msgid "Application Notifications"
+msgstr "Уведомления приложений"
+
+msgid "Choose how applications show banners and what goes to Notification Center."
+msgstr "Выберите, как приложения показывают баннеры и какие уведомления попадают в центр уведомлений."
+
+msgid "Manage which applications can control this computer."
+msgstr "Управляйте доступом приложений к управлению этим компьютером."
+
+msgid "Find applications, files, actions, and clipboard items on this computer."
+msgstr "Находите приложения, файлы, действия и содержимое буфера обмена на этом компьютере."
+
+msgid "Applications view"
+msgstr "Вид списка приложений"
+
+msgid "Grid"
+msgstr "Сетка"
+
+msgid "List"
+msgstr "Список"
+
+msgid "Quick Keys"
+msgstr "Быстрые клавиши"
+
+msgid "Reset Quick Keys…"
+msgstr "Сбросить быстрые клавиши…"
+
+msgid "Reset Quick Keys?"
+msgstr "Сбросить быстрые клавиши?"
+
+msgid "This removes your custom Spotlight Quick Keys."
+msgstr "Ваши быстрые клавиши Spotlight будут удалены."
+
+msgid "Default printer"
+msgstr "Принтер по умолчанию"
+
+msgid "Printers"
+msgstr "Принтеры"
+
+msgid "Add or Manage Printers…"
+msgstr "Добавить принтер или управлять принтерами…"
+
+msgid "Looking for printers…"
+msgstr "Поиск принтеров…"
+
+msgid "The CUPS printing service is unavailable."
+msgstr "Служба печати CUPS недоступна."
+
+msgid "Could not change the default printer."
+msgstr "Не удалось изменить принтер по умолчанию."
+
+msgid "No printers configured."
+msgstr "Нет настроенных принтеров."
+
+msgid "Idle"
+msgstr "Ожидание"
+
+msgid "Printing"
+msgstr "Печать"
+
+msgid "Stopped"
+msgstr "Остановлен"
+
+msgid "Add Wallpaper…"
+msgstr "Добавить обои…"
+
+msgid "Solid Color"
+msgstr "Сплошной цвет"
+
+msgid "Text highlight color"
+msgstr "Цвет выделения текста"
+
+msgid "Same as theme"
+msgstr "Как в теме"
+
+msgid "Wi-Fi unavailable"
+msgstr "Wi-Fi недоступен"
+
+msgid "No wireless adapter is available, or Wi-Fi is disabled by a hardware switch."
+msgstr "Беспроводной адаптер недоступен или Wi-Fi отключён аппаратным переключателем."
+
+msgid "Yellow"
+msgstr "Жёлтый"
+
+msgid "Indigo"
+msgstr "Индиго"

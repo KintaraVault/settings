@@ -3,6 +3,8 @@
 
 #include "widgets/formdialog.h"
 
+#include "ui/theme.h"
+
 #include "ui/cell_layout.h"
 #include "ui/dialog_window.h"
 #include "ui/keys.h"
@@ -19,6 +21,8 @@ FormDialog::FormDialog(SettingsWindow& parent, std::string title, double width)
 {
     m_content = m_dialog->setContent<ColumnLayout>();
     m_content->setSpacing(metrics::dialogSpacing);
+    const Color panel = Theme::current().darkMode ? Color::rgb(0x2b2b2b) : Color::rgb(0xededed);
+    m_dialog->window()->setBackgroundColor(withAlpha(wallpaperTinted(panel), 0.97));
     m_dialog->onClosed = [this] {
         if (onClosed)
             onClosed();
@@ -52,6 +56,11 @@ RowLayout* FormDialog::addButtonRow()
 void FormDialog::setFixedHeight(double height)
 {
     m_dialog->setHeight(height);
+}
+
+void FormDialog::setCloseVisible(bool visible)
+{
+    m_dialog->setCloseVisible(visible);
 }
 
 void FormDialog::show()

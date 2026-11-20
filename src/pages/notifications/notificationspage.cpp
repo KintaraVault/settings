@@ -8,7 +8,9 @@
 #include "ui/theme.h"
 #include "widgets/card.h"
 #include "widgets/listrow.h"
+#include "widgets/paneintro.h"
 #include "widgets/rowcombobox.h"
+#include "widgets/rowicon.h"
 #include "widgets/sections.h"
 #include "window/page.h"
 #include "window/pagelist.h"
@@ -26,15 +28,9 @@ public:
     explicit NotificationsPage(SettingsWindow& window)
         : Page(window, tr("Notifications"))
     {
-        Card* card = content()->addChild<Card>(Card::Style::List);
-        m_doNotDisturb = card->addChild<SwitchRow>(tr("Do Not Disturb"));
-        m_doNotDisturb->setName("notifications:doNotDisturb");
-        m_doNotDisturb->setChecked(m_notifications.doNotDisturb());
-        m_doNotDisturb->onToggled = [this](bool checked) { m_notifications.setDoNotDisturb(checked); };
-        m_subscriptions.push_back(m_notifications.doNotDisturbChanged.connect(
-                [this] { m_doNotDisturb->setChecked(m_notifications.doNotDisturb()); }));
-
-        Section* section = content()->addChild<Section>(tr("Applications"));
+        content()->addChild<PaneIntro>(title(), tr("Choose how applications show banners and what goes to Notification Center."),
+                                      "notifications.svg", Color::rgb(0xff304c));
+        Section* section = content()->addChild<Section>(tr("Application Notifications"));
         m_empty = section->addChild<Card>();
         m_empty->setName("notifications:empty");
         m_emptyLabel = m_empty->addChild<Label>(tr("Applications appear here after they send a notification."));
@@ -81,17 +77,40 @@ private:
 
     Notifications m_notifications;
     std::vector<cutefish::base::Subscription> m_subscriptions;
-    SwitchRow* m_doNotDisturb;
     Card* m_empty;
     Label* m_emptyLabel;
     Card* m_list;
     Footnote* m_footnote;
 };
 
+class FocusPage : public Page
+{
+public:
+    explicit FocusPage(SettingsWindow& window) : Page(window, tr("Focus"))
+    {
+        auto* card = content()->addChild<Card>(Card::Style::List);
+        m_doNotDisturb = card->addChild<SwitchRow>(tr("Do Not Disturb"));
+        m_doNotDisturb->setName("focus:doNotDisturb");
+        m_doNotDisturb->setLeading<RowIcon>("focus.svg", Color::rgb(0x6759ee));
+        m_doNotDisturb->setChecked(m_notifications.doNotDisturb());
+        m_doNotDisturb->onToggled = [this](bool checked) { m_notifications.setDoNotDisturb(checked); };
+        m_subscription = m_notifications.doNotDisturbChanged.connect(
+                [this] { m_doNotDisturb->setChecked(m_notifications.doNotDisturb()); });
+    }
+
+private:
+    Notifications m_notifications;
+    SwitchRow* m_doNotDisturb;
+    cutefish::base::Subscription m_subscription;
+};
+
 } // namespace
 
 static const PageRegistration registration("notifications", [](SettingsWindow& window) -> std::unique_ptr<Page> {
     return std::make_unique<NotificationsPage>(window);
+});
+static const PageRegistration focusRegistration("focus", [](SettingsWindow& window) {
+    return std::make_unique<FocusPage>(window);
 });
 
 } // namespace settings

@@ -59,12 +59,13 @@ struct SoftwareUpdatePageTest : ::testing::Test
         scenario.emplace();
         if (!waitFor([&] { return inSidebar(); }))
             return false;
-        scrollTo(driver(), "sidebar:list", "sidebar:softwareupdate");
-        driver().click("sidebar:softwareupdate");
+        scrollTo(driver(), "sidebar:list", "sidebar:general");
+        driver().click("sidebar:general");
+        driver().click("general:softwareupdate");
         return driver().shows("page:softwareupdate");
     }
 
-    bool inSidebar() { return !driver().findAll("sidebar:softwareupdate").empty(); }
+    bool inSidebar() { return scenario->settingsWindow().isPageAvailable("softwareupdate"); }
     std::string text(const std::string& name) { return driver().shows(name) ? driver().text(name) : std::string(); }
     size_t restarts() const { return size_t(std::count(service->calls.begin(), service->calls.end(), "restart")); }
     // Lets the change reach the page, and lays it out again.

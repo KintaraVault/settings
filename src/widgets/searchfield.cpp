@@ -17,6 +17,8 @@ SearchField::SearchField()
     : cutefish::ui::SearchField(tr("Search"))
 {
     setIconMetrics(metrics::s, metrics::xs, metrics::xs);
+    setGlyphColor(ColorId::DisabledText);
+    setPlaceholderColor(ColorId::DisabledText);
     setLayoutHints({.fillWidth = true});
 }
 

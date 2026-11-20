@@ -17,17 +17,16 @@ TEST(DockPage, DisplayModeGoesUnderItsLabelInANarrowWindow)
     window.grab();
     auto* control = findView<SegmentedControl>(window.contentView(), "dock:displayMode");
     ASSERT_NE(control, nullptr);
-    // Across the card inside its padding, below the label's 44 px row.
-    EXPECT_EQ(control->geometry().x, 16);
-    EXPECT_EQ(control->geometry().y, 44);
-    EXPECT_EQ(control->geometry().width, 330);
+    // Across the card inside its padding, below the label.
+    EXPECT_EQ(control->geometry().x, 10);
+    EXPECT_EQ(control->geometry().y, 38);
+    EXPECT_EQ(control->geometry().width, 348);
     const double button = (control->geometry().width - 2 * control->padding()) / double(control->count());
     for (size_t i = 0; i < control->count(); ++i)
         EXPECT_GE(button, control->implicitItemWidth(i)) << i;
-    EXPECT_EQ(control->parent()->geometry().height, 44 + control->geometry().height + 12);
+    EXPECT_EQ(control->parent()->geometry().height, 38 + control->geometry().height + 10);
 }
 
-// 690 wide leaves the card the 380 a 640-wide window has beside a 180 sidebar.
 TEST(DockPage, DisplayModeGoesUnderItsLabelWhileHalfTheRowIsTight)
 {
     PageFixture page("dock");
@@ -36,16 +35,16 @@ TEST(DockPage, DisplayModeGoesUnderItsLabelWhileHalfTheRowIsTight)
     ASSERT_NE(control, nullptr);
     window.resize({690, 820});
     window.grab();
-    EXPECT_EQ(control->geometry().x, 16);
-    EXPECT_EQ(control->geometry().width, 380);
+    EXPECT_EQ(control->geometry().x, 10);
+    EXPECT_EQ(control->geometry().width, 398);
     // Half the row would leave the labels 2 px a side.
     window.resize({780, 820});
     window.grab();
-    EXPECT_EQ(control->geometry().width, 470);
+    EXPECT_EQ(control->geometry().width, 488);
     window.resize({870, 820});
     window.grab();
-    EXPECT_EQ(control->geometry().y, 14);
-    EXPECT_EQ(control->geometry().width, 280);
+    EXPECT_EQ(control->geometry().y, 9);
+    EXPECT_EQ(control->geometry().width, 289);
 }
 
 TEST(DockPage, DisplayModeTakesHalfTheRowWhenItsLabelsFit)
@@ -57,5 +56,5 @@ TEST(DockPage, DisplayModeTakesHalfTheRowWhenItsLabelsFit)
     auto* control = findView<SegmentedControl>(window.contentView(), "dock:displayMode");
     ASSERT_NE(control, nullptr);
     // The page, the card's padding on both sides, half of the rest.
-    EXPECT_EQ(control->geometry().width, 286);
+    EXPECT_EQ(control->geometry().width, 295);
 }

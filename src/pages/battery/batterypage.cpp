@@ -50,7 +50,8 @@ public:
         setLayoutHints({.fillWidth = true});
         m_title = addChild<SectionLabel>(tr("History"));
         m_title->setName("battery:historytitle");
-        m_picker = addChild<SegmentedControl>(std::vector<std::string>{tr("24 hours"), tr("7 days")});
+        m_picker = addChild<SegmentedControl>(std::vector<std::string>{tr("24 hours"), tr("7 days")},
+                                               SegmentedControl::Style::Accent);
         // Compact, to sit in the title row.
         m_picker->setContentHeight(28);
     }

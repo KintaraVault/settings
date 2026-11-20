@@ -70,6 +70,27 @@ public:
     explicit KeyboardPage(SettingsWindow& window)
         : Page(window, tr("Keyboard"))
     {
+        m_repeatCard = content()->addChild<Card>(Card::Style::List);
+        m_repeatCard->setName("keyboard:repeat");
+        auto* sliders = m_repeatCard->addChild<RowLayout>();
+        sliders->setLayoutHints({.fillWidth = true, .margins = {0, 8, 0, 8}});
+        m_rate = sliders->addChild<SliderRow>(tr("Key repeat rate"), true);
+        m_delay = sliders->addChild<SliderRow>(tr("Delay until repeat"), true);
+        for (auto* row : {m_rate, m_delay})
+            row->setLayoutHints({.fillWidth = true, .preferredWidth = 135});
+        m_rate->setCaptions(tr("Slow"), tr("Fast"));
+        m_delay->setCaptions(tr("Long"), tr("Short"));
+        m_repeat = m_repeatCard->addChild<SwitchRow>(tr("Key repeat"));
+        m_repeat->onToggled = [this](bool checked) { m_keyboard.setRepeatEnabled(checked); };
+        m_delay->setRange(0, double(kRepeatDelays.size() - 1));
+        m_delay->setStepSize(1);
+        m_delay->onMoved = [this](double value) { m_keyboard.setRepeatDelay(kRepeatDelays[size_t(std::round(value))]); };
+        m_rate->setRange(0, double(kRepeatIntervals.size() - 1));
+        m_rate->setStepSize(1);
+        m_rate->onMoved = [this](double value) {
+            m_keyboard.setRepeatInterval(kRepeatIntervals[size_t(std::round(value))]);
+        };
+
         Section* inputMethods = content()->addChild<Section>(tr("Input method"));
         m_noInputMethods = inputMethods->addChild<NoteCard>(
                 tr("Input methods can only be selected in a Cutefish Wayland session."));
@@ -93,21 +114,6 @@ public:
         m_layout->onClicked = [&window] { window.pushPage("keyboardlayout"); };
         NavigationItem* shortcuts = navigation->addChild<NavigationItem>(tr("Keyboard Shortcuts"));
         shortcuts->onClicked = [&window] { window.pushPage("shortcuts"); };
-
-        m_repeatCard = content()->addChild<Card>(Card::Style::List);
-        m_repeatCard->setName("keyboard:repeat");
-        m_repeat = m_repeatCard->addChild<SwitchRow>(tr("Key repeat"));
-        m_repeat->onToggled = [this](bool checked) { m_keyboard.setRepeatEnabled(checked); };
-        m_delay = m_repeatCard->addChild<SliderRow>(tr("Delay until repeat"));
-        m_delay->setRange(0, double(kRepeatDelays.size() - 1));
-        m_delay->setStepSize(1);
-        m_delay->onMoved = [this](double value) { m_keyboard.setRepeatDelay(kRepeatDelays[size_t(std::round(value))]); };
-        m_rate = m_repeatCard->addChild<SliderRow>(tr("Repeat rate"));
-        m_rate->setRange(0, double(kRepeatIntervals.size() - 1));
-        m_rate->setStepSize(1);
-        m_rate->onMoved = [this](double value) {
-            m_keyboard.setRepeatInterval(kRepeatIntervals[size_t(std::round(value))]);
-        };
 
         m_inputMethodChanged = m_inputMethod.changed().connect([this] { updateInputMethods(); });
         m_keyboardChanged = m_keyboard.changed().connect([this] { updateKeyboard(); });

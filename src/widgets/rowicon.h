@@ -5,20 +5,14 @@
 
 #include <string>
 
-#include "ui/view.h"
-
-namespace cutefish::ui {
-class Icon;
-}
+#include "ui/icon.h"
 
 namespace settings {
-
-class Picture;
 
 // The sidebar's tile: a coloured rounded square with a white glyph, for the
 // sidebar and a list row's leading slot. The glyph is one of settings'
 // sidebar pictures, or a toolkit glyph when the name has no ".svg".
-class RowIcon : public cutefish::ui::View
+class RowIcon : public cutefish::ui::Icon
 {
 public:
     RowIcon(std::string glyph, cutefish::ui::Color tint);
@@ -33,8 +27,6 @@ protected:
 
 private:
     cutefish::ui::Color m_tint;
-    Picture* m_picture;
-    cutefish::ui::Icon* m_glyph;
 };
 
 } // namespace settings

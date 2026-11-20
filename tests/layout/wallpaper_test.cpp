@@ -20,10 +20,10 @@ TEST(WallpaperGrid, AddsAColumnOnceEveryColumnCanBe128Wide)
     WallpaperGrid grid("System");
     grid.setWallpapers(std::vector<std::string>(10, "/x.jpg"));
     // Title, spacing, one row of thumbnails 0.625 as high as wide.
-    EXPECT_EQ(grid.heightForWidth(590), 24 + 12 + 81);  // 4 columns of 129.5
-    EXPECT_EQ(grid.heightForWidth(500), 24 + 12 + 94);  // 3 of 150.67
-    EXPECT_EQ(grid.heightForWidth(300), 24 + 12 + 86);  // 2 of 138
-    EXPECT_EQ(grid.heightForWidth(200), 24 + 12 + 100); // 1 of 160
+    EXPECT_EQ(grid.heightForWidth(590), 24 + 10 + 81);  // 4 columns of 129.5
+    EXPECT_EQ(grid.heightForWidth(500), 24 + 10 + 94);  // 3 of 150.67
+    EXPECT_EQ(grid.heightForWidth(300), 24 + 10 + 86);  // 2 of 138
+    EXPECT_EQ(grid.heightForWidth(200), 24 + 10 + 100); // 1 of 160
 }
 
 TEST(WallpaperGrid, ShowsAllRowsOnRequest)
@@ -42,5 +42,5 @@ TEST(WallpaperGrid, ShowsAllRowsOnRequest)
     TestInput::click(window, {showAll.x + showAll.width / 2, showAll.y + showAll.height / 2});
     window.grab();
     // Three rows of 81 with 24 between.
-    EXPECT_EQ(grid->heightForWidth(590), 24 + 12 + 3 * 81 + 2 * 24);
+    EXPECT_EQ(grid->heightForWidth(590), 24 + 10 + 3 * 81 + 2 * 24);
 }

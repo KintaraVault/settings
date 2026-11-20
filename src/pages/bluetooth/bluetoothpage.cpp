@@ -23,6 +23,7 @@
 #include "widgets/iconbutton.h"
 #include "widgets/listrow.h"
 #include "widgets/metrics.h"
+#include "widgets/paneintro.h"
 #include "widgets/sections.h"
 #include "window/page.h"
 #include "window/pagelist.h"
@@ -285,7 +286,9 @@ public:
         top->setSpacing(metrics::sectionLabelSpacing);
         top->setLayoutHints({.fillWidth = true});
         m_firstCard = top->addChild<Card>(Card::Style::List);
-        m_switch = m_firstCard->addChild<SwitchRow>(tr("Bluetooth"));
+        m_switch = m_firstCard->addChild<PaneSwitch>(tr("Bluetooth"),
+            tr("Connect to wireless accessories such as headphones, keyboards, and mice."),
+            "bluetooth.svg", Color::rgb(0x0087ed));
         m_switch->onToggled = [this](bool checked) { toggled(checked); };
         m_message = top->addChild<Footnote>();
         m_message->setName("bluetooth:message");

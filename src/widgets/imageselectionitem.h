@@ -36,6 +36,7 @@ public:
     cutefish::ui::SizeF sizeHint() const override;
     double heightForWidth(double width) const override;
     bool acceptsPointer() const override { return true; }
+    bool acceptsFocus() const override { return true; }
 
     std::function<void()> onClicked;
 
@@ -43,6 +44,7 @@ protected:
     void layout() override;
     void pointerPress(const cutefish::ui::PointerEvent& event) override;
     void pointerRelease(const cutefish::ui::PointerEvent& event) override;
+    bool keyPress(const cutefish::ui::KeyEvent& event) override;
 
 private:
     void build(std::string text);

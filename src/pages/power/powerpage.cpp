@@ -17,6 +17,7 @@
 #include "widgets/imageselectionitem.h"
 #include "widgets/listrow.h"
 #include "widgets/metrics.h"
+#include "widgets/paneintro.h"
 #include "widgets/picture.h"
 #include "widgets/rowcombobox.h"
 #include "widgets/sections.h"
@@ -69,26 +70,32 @@ constexpr ProfileTile kProfileTiles[] = {
 class PowerPage : public Page
 {
 public:
-    explicit PowerPage(SettingsWindow& window)
-        : Page(window, tr("Power"))
+    explicit PowerPage(SettingsWindow& window, bool lockScreen = false)
+        : Page(window, lockScreen ? tr("Lock Screen") : tr("Power"))
     {
-        // Mode.
-        m_mode = content()->addChild<Section>(tr("Mode"));
-        m_mode->setName("power:mode");
-        Card* modes = m_mode->addChild<Card>();
-        RowLayout* tiles = modes->addChild<RowLayout>();
-        tiles->setSpacing(metrics::tileSpacing);
-        for (const ProfileTile& tile : kProfileTiles) {
-            ImageSelectionItem* item = tiles->addChild<ImageSelectionItem>(dataPath(tile.picture), tr(tile.name),
-                                                                           SizeF{80, 80});
-            const std::string profile = tile.profile;
-            item->onClicked = [this, profile] { m_profiles.setActiveProfile(profile); };
-            m_tiles.push_back(item);
+        if (!lockScreen) {
+            m_mode = content()->addChild<Section>(tr("Mode"));
+            m_mode->setName("power:mode");
+            Card* modes = m_mode->addChild<Card>();
+            RowLayout* tiles = modes->addChild<RowLayout>();
+            tiles->setSpacing(metrics::tileSpacing);
+            for (const ProfileTile& tile : kProfileTiles) {
+                ImageSelectionItem* item = tiles->addChild<ImageSelectionItem>(dataPath(tile.picture), tr(tile.name),
+                                                                               SizeF{80, 80});
+                const std::string profile = tile.profile;
+                item->onClicked = [this, profile] { m_profiles.setActiveProfile(profile); };
+                m_tiles.push_back(item);
+            }
+            m_description = m_mode->addChild<Footnote>();
+            m_description->setName("power:description");
+            m_degraded = m_mode->addChild<Footnote>();
+            m_degraded->setName("power:degraded");
+
+            m_subscriptions.push_back(m_profiles.profilesChanged.connect([this] { updateProfiles(); }));
+            m_subscriptions.push_back(m_profiles.activeProfileChanged.connect([this] { updateProfiles(); }));
+            m_subscriptions.push_back(m_profiles.performanceDegradedChanged.connect([this] { updateProfiles(); }));
+            updateProfiles();
         }
-        m_description = m_mode->addChild<Footnote>();
-        m_description->setName("power:description");
-        m_degraded = m_mode->addChild<Footnote>();
-        m_degraded->setName("power:degraded");
 
         // Display and sleep.
         Card* idle = content()->addChild<Card>(Card::Style::List);
@@ -116,10 +123,6 @@ public:
             m_subscriptions.push_back(m_batteryStatus->availableChanged.connect([this] { updateBattery(); }));
         }
 
-        m_subscriptions.push_back(m_profiles.profilesChanged.connect([this] { updateProfiles(); }));
-        m_subscriptions.push_back(m_profiles.activeProfileChanged.connect([this] { updateProfiles(); }));
-        m_subscriptions.push_back(m_profiles.performanceDegradedChanged.connect([this] { updateProfiles(); }));
-        updateProfiles();
         updateBattery();
     }
 
@@ -172,7 +175,7 @@ private:
     std::shared_ptr<upower::BatteryStatus> m_batteryStatus;
     std::vector<base::Subscription> m_subscriptions;
 
-    Section* m_mode;
+    Section* m_mode = nullptr;
     std::vector<ImageSelectionItem*> m_tiles;
     Footnote* m_description;
     Footnote* m_degraded;
@@ -185,6 +188,9 @@ private:
 
 static const PageRegistration registration("power", [](SettingsWindow& window) -> std::unique_ptr<Page> {
     return std::make_unique<PowerPage>(window);
+});
+static const PageRegistration lockRegistration("lockscreen", [](SettingsWindow& window) {
+    return std::make_unique<PowerPage>(window, true);
 });
 
 } // namespace settings

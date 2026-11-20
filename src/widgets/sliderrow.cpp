@@ -23,12 +23,10 @@ using cutefish::i18n::trc;
 namespace settings {
 
 // FishUI's slider handle, and how far it overhangs the visible track's ends.
-static constexpr double kHandle = 22;
-static constexpr double kTrack = 4;
-static constexpr double kTrackInset = (kHandle - kTrack) / 2;
+static constexpr double kTrackInset = Slider::trackInset();
 static constexpr int kMeterSegments = 15;
 static constexpr double kMeterDot = 8;
-static constexpr double kTickHeight = 6;
+static constexpr double kTickHeight = 2;
 static constexpr double kCaptionPixelSize = 11;
 
 // Captions under a slider, flush with the two ends of its track, each under
@@ -170,7 +168,7 @@ public:
     }
 
     // The captions make the row too tall for the plain row padding to look even.
-    double verticalMargin() const { return m_captions->isVisible() ? metrics::m : 0; }
+    double verticalMargin() const { return 0; }
     double sliderHeight() const { return m_slider->sizeHint().height; }
 
     SizeF sizeHint() const override
@@ -226,13 +224,14 @@ void RowSlider::layout()
     m_slider->setGeometry({-kTrackInset, 0, geometry().width + 2 * kTrackInset, geometry().height});
 }
 
-SliderRow::SliderRow(std::string text)
+SliderRow::SliderRow(std::string text, bool stacked)
     : ListRow(std::move(text))
+    , m_stacked(stacked)
     , m_settle(std::make_unique<cutefish::base::Timer>())
 {
     setInteractive(false);
-    setMinimumRowHeight(metrics::controlRowHeight);
-    m_controls = addContent<SliderControls>();
+    setMinimumRowHeight(stacked ? 22 : metrics::controlRowHeight);
+    m_controls = stacked ? addChild<SliderControls>() : addContent<SliderControls>();
     m_settle->setSingleShot(true);
     m_settle->onTimeout = [this] {
         m_settling = false;
@@ -300,7 +299,8 @@ void SliderRow::setCaptions(std::string left, std::string right)
 {
     m_controls->captions()->setTexts(std::move(left), std::move(right));
     // Centres the label on the slider rather than on the slider and its captions.
-    setLabelBottomMargin(m_controls->captions()->isVisible() ? m_controls->captions()->sizeHint().height : 0);
+    if (!m_stacked)
+        setLabelBottomMargin(m_controls->captions()->isVisible() ? m_controls->captions()->sizeHint().height : 0);
 }
 
 void SliderRow::setIcons(std::string left, std::string right)
@@ -318,8 +318,30 @@ Slider* SliderRow::slider() const
     return m_controls->slider();
 }
 
+SizeF SliderRow::sizeHint() const
+{
+    SizeF size = ListRow::sizeHint();
+    if (m_stacked) {
+        size.width = std::max(size.width, 100.0);
+        size.height += m_controls->sizeHint().height;
+    }
+    return size;
+}
+
+double SliderRow::heightForWidth(double width) const
+{
+    return ListRow::heightForWidth(width) + (m_stacked ? m_controls->sizeHint().height : 0);
+}
+
 void SliderRow::layout()
 {
+    if (m_stacked) {
+        ListRow::layout();
+        m_controls->setGeometry({metrics::cardHorizontalPadding, rowHeight(),
+                                  std::max(0.0, geometry().width - 2 * metrics::cardHorizontalPadding),
+                                  m_controls->sizeHint().height});
+        return;
+    }
     // Half the row's content width.
     const double width = std::round((geometry().width - 2 * metrics::cardHorizontalPadding) / 2);
     if (m_controls->layoutHints().preferredWidth != width)

@@ -18,6 +18,7 @@
 #include "widgets/card.h"
 #include "widgets/listrow.h"
 #include "widgets/metrics.h"
+#include "widgets/paneintro.h"
 #include "widgets/sections.h"
 #include "window/page.h"
 #include "window/pagelist.h"
@@ -76,8 +77,10 @@ class PrivacyPage : public Page
 {
 public:
     explicit PrivacyPage(SettingsWindow& window)
-        : Page(window, tr("Privacy"))
+        : Page(window, tr("Privacy & Security"))
     {
+        content()->addChild<PaneIntro>(tr("Privacy"), tr("Manage which applications can control this computer."),
+                                      "privacy.svg", Color::rgb(0x0087ed));
         Section* section = content()->addChild<Section>(tr("Computer control"));
         m_unavailable = section->addChild<Card>();
         m_unavailableLabel = m_unavailable->addChild<Label>(

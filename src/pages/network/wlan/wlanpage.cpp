@@ -22,6 +22,7 @@
 #include "widgets/card.h"
 #include "widgets/listrow.h"
 #include "widgets/metrics.h"
+#include "widgets/paneintro.h"
 #include "widgets/sections.h"
 #include "window/page.h"
 #include "window/options.h"
@@ -71,8 +72,13 @@ public:
         m_view = content()->addChild<ColumnLayout>();
         m_view->setSpacing(metrics::sectionSpacing);
         m_view->setLayoutHints({.fillWidth = true});
+        m_unavailable = content()->addChild<PaneIntro>(tr("Wi-Fi unavailable"),
+            tr("No wireless adapter is available, or Wi-Fi is disabled by a hardware switch."),
+            "wlan.svg", Color::rgb(0x0087ed));
         m_mainCard = m_view->addChild<Card>(Card::Style::List);
-        m_switch = m_mainCard->addChild<SwitchRow>(tr("Wi-Fi"));
+        m_switch = m_mainCard->addChild<PaneSwitch>(tr("Wi-Fi"),
+            tr("Turn on Wi-Fi and choose a network to connect wirelessly to the internet."),
+            "wlan.svg", Color::rgb(0x0087ed));
         m_switch->setName("wlan:switch");
         m_switch->onToggled = [this](bool checked) { wirelessToggled(checked); };
         m_currentRows = std::make_unique<KeyedRows<WifiRow>>([this](View* parent) { return makeRow(parent); });
@@ -215,7 +221,9 @@ private:
     void update()
     {
         const bool mock = m_list.isMock();
-        content()->setVisible(m_enabled.isWirelessHwEnabled() || mock);
+        const bool available = m_enabled.isWirelessHwEnabled() || mock;
+        m_view->setVisible(available);
+        m_unavailable->setVisible(!available);
         m_switch->setChecked(mock || wirelessEnabled());
 
         const std::vector<nm::NetworkItem> items = m_list.rows(nm::ConnectionType::Wireless);
@@ -276,6 +284,7 @@ private:
     }
 
     NetworkList m_list;
+    PaneIntro* m_unavailable;
     nm::EnabledConnections m_enabled;
     nm::Handler m_handler;
     cutefish::base::Timer m_scanTimer;

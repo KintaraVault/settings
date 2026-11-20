@@ -21,6 +21,7 @@ namespace settings {
 StandardButton::StandardButton(std::string text)
 {
     m_label = addChild<Label>(std::move(text));
+    m_label->setFontSize(12);
     m_label->setTextAlignment(Label::TextAlignment::Center);
     m_label->setVerticallyCentered(true);
     setLayoutHints({.fillWidth = true});
@@ -47,7 +48,7 @@ SizeF StandardButton::sizeHint() const
 {
     const SizeF label = m_label->sizeHint();
     return {label.width + 2 * metrics::cardHorizontalPadding,
-            std::max(metrics::buttonHeight, label.height + 2 * Theme::current().smallSpacing)};
+            std::max(metrics::buttonHeight, label.height + 6)};
 }
 
 void StandardButton::layout()
@@ -62,7 +63,7 @@ void StandardButton::paint(Painter& painter)
     Color color = background;
     if (isEnabled() && m_pressed)
         color = theme.darkMode ? background.lighter(1.1) : background.darker(1.2);
-    painter.drawRoundedRect(localRect(), {theme.mediumRadius, 0, themeCorners()}, color);
+    painter.drawRoundedRect(localRect(), {6, 0, themeCorners()}, color);
 }
 
 void StandardButton::pointerPress(const PointerEvent& event)

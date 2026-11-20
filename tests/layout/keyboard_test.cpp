@@ -28,8 +28,8 @@ TEST(KeyboardLayoutPage, TheListFillsThePageBelowTheSearch)
     // The list fills the page below the search field, with the page margins.
     const RectF search = windowRect(window, "keyboardlayout:search");
     const RectF list = windowRect(window, "keyboardlayout:list");
-    EXPECT_EQ(search.x, 254);
-    EXPECT_EQ(search.y, 52);
+    EXPECT_EQ(search.x, 252);
+    EXPECT_EQ(search.y, 64);
     EXPECT_EQ(list.y, search.y + search.height + 16);
-    EXPECT_EQ(list.y + list.height, 610 - 24);
+    EXPECT_EQ(list.y + list.height, 610 - 20);
 }

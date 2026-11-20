@@ -55,9 +55,9 @@ TEST_F(TouchpadTest, BothCardsLeaveOutTheSecondaryClick)
     settingsWindow.switchToPage("touchpad");
     window.grab();
 
-    // Both cards, the second without the secondary click row.
-    EXPECT_EQ(windowRect(window, "touchpad:device").height, 3 * 44);
+    // The device card sits above the preview and Point & Click controls.
+    EXPECT_EQ(windowRect(window, "touchpad:device").height, 3 * 38);
     const RectF gestures = windowRect(window, "touchpad:gestures");
-    EXPECT_EQ(gestures.y, 52 + 3 * 44 + 24);
-    EXPECT_EQ(gestures.height, 3 * 44 + 2 * 52);
+    EXPECT_NEAR(gestures.y, 375, 0.5);
+    EXPECT_EQ(gestures.height, 2 * 38 + 56);
 }

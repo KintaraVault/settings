@@ -20,6 +20,9 @@ Debian/Ubuntu Dependencies:
 sudo apt install cmake pkg-config libicu-dev libcrypt-dev libfontconfig-dev libxcursor-dev libxkbcommon-dev libexpat1-dev libsystemd-dev
 ```
 
+For the Printers & Scanners pane, also install `libcups` (Arch/Manjaro) or
+`libcups2-dev` (Debian/Ubuntu). A running CUPS service is needed to manage printers.
+
 ## Build
 
 ```shell
@@ -29,6 +32,10 @@ cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ..
 make
 sudo make install
 ```
+
+With `BUILD_TESTING=ON`, `build/tests/ui/settings-capture <directory> [page ...]`
+writes light and dark previews at 100% and 150% to an existing directory.
+For example, pass `appearance` to capture only that pane.
 
 ## License
 

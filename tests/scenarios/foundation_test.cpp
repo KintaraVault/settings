@@ -35,7 +35,7 @@ TEST(Foundation, HistoryGoesBackAndForward)
     Scenario scenario;
     TestDriver& driver = scenario.driver;
     EXPECT_FALSE(canGoBack(driver));
-    open(driver, "sidebar:about");
+    open(driver, "sidebar:general");
     open(driver, "sidebar:dock");
     driver.click("dock:hotcorners");
     EXPECT_TRUE(driver.shows("page:hotcorners"));
@@ -69,12 +69,12 @@ TEST(Foundation, BackAndForwardKeys)
 {
     Scenario scenario;
     TestDriver& driver = scenario.driver;
-    open(driver, "sidebar:about");
+    open(driver, "sidebar:general");
     driver.setKeyboardFocus(true);
     driver.typeKey(key::Left, AltModifier);
     EXPECT_TRUE(driver.shows("page:wlan"));
     driver.typeKey(key::Right, AltModifier);
-    EXPECT_TRUE(driver.shows("page:about"));
+    EXPECT_TRUE(driver.shows("page:general"));
 }
 
 TEST(Foundation, SubPagesOpenUnderTheirSidebarPage)

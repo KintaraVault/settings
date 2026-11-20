@@ -1,0 +1,5 @@
+find_package(Cups QUIET)
+if(TARGET Cups::Cups)
+    target_link_libraries(settings-ui PUBLIC Cups::Cups)
+    target_compile_definitions(settings-ui PRIVATE SETTINGS_WITH_CUPS)
+endif()
